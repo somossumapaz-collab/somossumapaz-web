@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Somos Sumapaz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/comprehensive_form.css') }}">
+</head>
+
+<body>
+    <header class="main-header">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Somos Sumapaz" class="header-logo">
+        <nav class="main-nav">
+            <a href="{{ url_for('index') }}" class="nav-link">Inicio</a>
+            <a href="#" class="nav-link" id="nav-login-link">Login</a>
+            <a href="{{ url_for('dashboard') }}" class="nav-link">Banco de hojas de vida</a>
+        </nav>
+    </header>
+
+    <div class="video-background">
+        <video autoplay muted loop playsinline>
+            <source src="{{ url_for('static', filename='img/login_bg.mp4') }}" type="video/mp4">
+            Tu navegador no soporta video HTML5.
+        </video>
+    </div>
+
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+
+</html>

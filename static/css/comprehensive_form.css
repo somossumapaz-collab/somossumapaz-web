@@ -1,0 +1,37 @@
+/* Comprehensive Form Styles */
+
+/* Skills Mosaic */
+.skills-mosaic {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.skill-item {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    user-select: none;
+    color: #333;
+}
+
+.skill-item.selected {
+    background: #3D5825;
+    /* Using primary color directly */
+    color: #ffffff;
+    border-color: #3D5825;
+}
+
+.skill-item:hover {
+    border-color: #3D5825;
+}

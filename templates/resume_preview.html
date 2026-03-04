@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ resume.full_name }} - Hoja de Vida</title>
+    <style>
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .resume-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        /* Header */
+        header {
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            margin: 0;
+            color: #007bff;
+            font-size: 2.5rem;
+        }
+
+        .header-content p {
+            margin: 5px 0;
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        .contact-info {
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .contact-info p {
+            margin: 2px 0;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 30px;
+        }
+
+        h2.section-title {
+            color: #2c3e50;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Profile */
+        .profile-description {
+            font-size: 1.05rem;
+            text-align: justify;
+        }
+
+        /* Skills */
+        .skills-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .skill-tag {
+            background: #eef2f7;
+            color: #007bff;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Experience & Education */
+        .item {
+            margin-bottom: 20px;
+        }
+
+        .item h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .item .meta {
+            color: #777;
+            font-style: italic;
+            font-size: 0.95rem;
+            margin-bottom: 5px;
+        }
+
+        .item .details {
+            margin-left: 20px;
+        }
+
+        /* References */
+        .references-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .reference-item p {
+            margin: 2px 0;
+        }
+
+        .reference-item strong {
+            display: block;
+            margin-bottom: 3px;
+            color: #333;
+        }
+
+        /* Actions - Hide in PDF */
+        .actions {
+            margin-top: 40px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0 10px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            border: none;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .resume-container {
+                box-shadow: none;
+                padding: 0;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .actions {
+                display: none;
+            }
+        }
+
+        /* PDF specific overrides for xhtml2pdf */
+        @page {
+            size: letter;
+            margin: 2cm;
+
+            @frame footer_frame {
+                /* Another static Frame */
+                -pdf-frame-content: footerContent;
+                bottom: 1cm;
+                margin-left: 1cm;
+                margin-right: 1cm;
+                height: 1cm;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="resume-container">
+        <header>
+            <div class="header-content">
+                <h1>{{ resume.full_name }}</h1>
+                <p>Nicho: {{ resume.niche }}</p>
+                <p>{{ resume.id_type }} {{ resume.document_id }} | {{ resume.birth_date }}</p>
+            </div>
+            <div class="contact-info">
+                <p><strong>Email:</strong> {{ resume.email }}</p>
+                <p><strong>Teléfono:</strong> {{ resume.phone }}</p>
+                <p><strong>Ubicación:</strong> {{ resume.city }}, {{ resume.department }}</p>
+            </div>
+        </header>
+
+        <!-- Profile -->
+        <section>
+            <h2 class="section-title">Perfil Profesional</h2>
+            <div class="profile-description">
+                {{ resume.profile_description }}
+            </div>
+        </section>
+
+        <!-- Experience -->
+        <section>
+            <h2 class="section-title">Experiencia Laboral</h2>
+            {% for xp in resume.experience %}
+            <div class="item">
+                <h3>{{ xp.role }}</h3>
+                <div class="meta">
+                    {{ xp.company }} |
+                    {{ xp.start_date }} -
+                    {% if xp.is_current %}Actualmente{% else %}{{ xp.end_date }}{% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p>No se registró experiencia laboral.</p>
+            {% endfor %}
+        </section>
+
+        <!-- Education -->
+        <section>
+            <h2 class="section-title">Formación Académica</h2>
+            {% for edu in resume.education %}
+            <div class="item">
+                <h3>{{ edu.level }}</h3>
+                <div class="meta">
+                    {{ edu.institution }} |
+                    {{ edu.start_date }} -
+                    {% if edu.is_current %}En curso{% else %}{{ edu.end_date }}{% endif %}
+                </div>
+            </div>
+            {% else %}
+            <p>No se registró información académica.</p>
+            {% endfor %}
+        </section>
+
+        <!-- Skills -->
+        <section>
+            <h2 class="section-title">Habilidades</h2>
+            <div class="skills-list">
+                {% if resume.skills %}
+                {% for skill in resume.skills.split(',') %}
+                <span class="skill-tag">{{ skill.strip() }}</span>
+                {% endfor %}
+                {% else %}
+                <p>No se especificaron habilidades.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- References -->
+        <section>
+            <h2 class="section-title">Referencias</h2>
+            <div class="references-grid">
+                <div>
+                    <h3>Personales</h3>
+                    {% for ref in personal_refs %}
+                    <div class="reference-item" style="margin-bottom:10px;">
+                        <strong>{{ ref.name }}</strong>
+                        <p>{{ ref.occupation }}</p>
+                        <p>Tel: {{ ref.phone }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div>
+                    <h3>Familiares</h3>
+                    {% for ref in family_refs %}
+                    <div class="reference-item" style="margin-bottom:10px;">
+                        <strong>{{ ref.name }}</strong>
+                        <p>Relación: {{ ref.relation }}</p>
+                        <p>Tel: {{ ref.phone }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+
+        <div class="actions">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Volver al Panel</a>
+            <a href="{{ url_for('download_pdf', resume_id=resume.id) }}" class="btn btn-primary">Descargar PDF</a>
+        </div>
+    </div>
+</body>
+
+</html>
