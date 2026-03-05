@@ -7,6 +7,15 @@
         <p style="color: #666;">Únete a la red de Talento Sumapaz</p>
     </div>
 
+    <?php if (isset($_SESSION['flash_message'])): ?>
+        <div
+            style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 10px; margin-bottom: 25px; text-align: center; border: 1px solid #ffcdd2;">
+            <i class="fas fa-exclamation-circle"></i>
+            <?php echo htmlspecialchars($_SESSION['flash_message']);
+            unset($_SESSION['flash_message']); ?>
+        </div>
+    <?php endif; ?>
+
     <form action="api/register.php" method="POST">
         <!-- Fila 1: Nombre y Apellido -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">

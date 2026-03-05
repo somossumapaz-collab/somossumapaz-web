@@ -7,6 +7,24 @@
         <p style="color: #666;">Bienvenido de nuevo a Talento Sumapaz</p>
     </div>
 
+    <?php if (isset($_SESSION['flash_message'])): ?>
+        <div
+            style="background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 10px; margin-bottom: 25px; text-align: center; border: 1px solid #c8e6c9;">
+            <i class="fas fa-check-circle"></i>
+            <?php echo htmlspecialchars($_SESSION['flash_message']);
+            unset($_SESSION['flash_message']); ?>
+        </div>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['flash_error'])): ?>
+        <div
+            style="background: #ffebee; color: #c62828; padding: 15px; border-radius: 10px; margin-bottom: 25px; text-align: center; border: 1px solid #ffcdd2;">
+            <i class="fas fa-exclamation-circle"></i>
+            <?php echo htmlspecialchars($_SESSION['flash_error']);
+            unset($_SESSION['flash_error']); ?>
+        </div>
+    <?php endif; ?>
+
     <form action="api/login.php" method="POST">
         <div style="margin-bottom: 20px;">
             <label style="display: block; margin-bottom: 8px; font-weight: 600;">Usuario</label>
