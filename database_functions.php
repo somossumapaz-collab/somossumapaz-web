@@ -59,6 +59,11 @@ function init_db()
     $conn->query("CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) UNIQUE NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        phone TEXT,
+        address TEXT,
+        city TEXT,
+        department TEXT,
         password TEXT,
         google_id TEXT
     )");
@@ -66,7 +71,7 @@ function init_db()
     // Default admin user
     $checkAdmin = $conn->query("SELECT id FROM users WHERE username = 'admin'");
     if ($checkAdmin->num_rows === 0) {
-        $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES ('admin', 'admin')");
+        $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES ('admin', 'admin@talento.com', 'admin')");
         $stmt->execute();
     }
 }
@@ -89,15 +94,24 @@ function verify_user($username, $password)
     return null;
 }
 
-function create_user($username, $password)
+function create_user($data)
 {
     $conn = get_db_connection();
     if (!$conn)
         return false;
 
     try {
-        $stmt = $conn->prepare("INSERT INTO users (username, password) VALUES (?, ?)");
-        $stmt->bind_param("ss", $username, $password);
+        $stmt = $conn->prepare("INSERT INTO users (username, email, phone, address, city, department, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param(
+            "sssssss",
+            $data['username'],
+            $data['email'],
+            $data['phone'],
+            $data['address'],
+            $data['city'],
+            $data['department'],
+            $data['password']
+        );
         return $stmt->execute();
     } catch (Exception $e) {
         return false;

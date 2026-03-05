@@ -432,53 +432,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load Resumes
     async function loadResumes() {
-        const listContainer = document.getElementById('resumes-list');
-        listContainer.innerHTML = '<p>Cargando...</p>';
+        const tableBody = document.getElementById('resumeTableBody');
+        if (!tableBody) return;
+
+        tableBody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center;">Cargando...</td></tr>';
 
         try {
             const response = await fetch('api/get_resumes.php');
             const data = await response.json();
 
-            listContainer.innerHTML = '';
-
+            tableBody.innerHTML = '';
             if (data.length === 0) {
-                listContainer.innerHTML = '<p>No hay hojas de vida registradas aún.</p>';
+                tableBody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center;">No hay registros encontrados.</td></tr>';
                 return;
             }
 
-            // Create table
-            const table = document.createElement('table');
-            table.style.width = '100%';
-            table.style.borderCollapse = 'collapse';
-            table.innerHTML = `
-                <thead>
-                    <tr style="background:#f0f0f0; text-align:left;">
-                        <th style="padding:10px;">Nombre</th>
-                        <th style="padding:10px;">Habilidades</th>
-                        <th style="padding:10px;">Contacto</th>
-                        <th style="padding:10px;">Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${data.map(resume => `
-                        <tr style="border-bottom:1px solid #ddd;">
-                            <td style="padding:10px;">${resume.full_name}</td>
-                            <td style="padding:10px;">${resume.skills}</td>
-                            <td style="padding:10px;">${resume.phone}</td>
-                            <td style="padding:10px;">
-                                <a href="api/download_resume.php?resume_id=${resume.id}" class="btn-secondary" style="text-decoration:none; padding:5px 10px; font-size:0.8rem;">
-                                    Descargar ZIP
-                                </a>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            `;
-            listContainer.appendChild(table);
-
+            data.forEach(resume => {
+                const row = document.createElement('tr');
+                row.style.borderBottom = '1px solid #eee';
+                row.innerHTML = `
+                    <td style="padding:15px;">
+                        <strong>${resume.full_name}</strong><br>
+                        <small style="color:#777;">${resume.email}</small>
+                    </td>
+                    <td style="padding:15px;">${resume.niche || 'N/A'}</td>
+                    <td style="padding:15px;">${resume.phone}</td>
+                    <td style="padding:15px;">
+                        <div style="display:flex; gap:10px;">
+                            <a href="resume_preview.php?resume_id=${resume.id}" class="btn-login" style="text-decoration:none; padding:5px 12px; font-size:0.8rem; border:1px solid var(--primary-color); border-radius:15px; color:var(--primary-color);">
+                                <i class="fas fa-eye"></i> Ver
+                            </a>
+                            <a href="api/download_resume.php?resume_id=${resume.id}" class="btn-secondary" style="text-decoration:none; padding:5px 12px; font-size:0.8rem; background:#8d6e63; color:#fff; border-radius:15px;">
+                                <i class="fas fa-download"></i> ZIP
+                            </a>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
         } catch (error) {
-            console.error('Error loading resumes:', error);
-            listContainer.innerHTML = '<p>Error al cargar los datos.</p>';
+            console.error('Error fetching resumes:', error);
+            tableBody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:red;">Error al cargar datos.</td></tr>';
         }
     }
 });

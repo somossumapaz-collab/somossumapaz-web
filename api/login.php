@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['username'] = $user['username'];
 
-        header('Location: ../dashboard.php');
+        header('Location: ../user_panel.php');
         exit;
     } else {
         $_SESSION['flash_error'] = 'Usuario o contraseña incorrectos';
