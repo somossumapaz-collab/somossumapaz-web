@@ -1,4 +1,19 @@
+---
 deployment:
   tasks:
     - export DEPLOYPATH=/home/somossum/public_html/
-    - /bin/cp -R * $DEPLOYPATH
+    - /bin/cp index.php $DEPLOYPATH
+    - /bin/cp blog.php $DEPLOYPATH
+    - /bin/cp dashboard.php $DEPLOYPATH
+    - /bin/cp login_page.php $DEPLOYPATH
+    - /bin/cp register_page.php $DEPLOYPATH
+    - /bin/cp user_panel.php $DEPLOYPATH
+    - /bin/cp resume_form.php $DEPLOYPATH
+    - /bin/cp resume_preview.php $DEPLOYPATH
+    - /bin/cp header.php $DEPLOYPATH
+    - /bin/cp footer.php $DEPLOYPATH
+    - /bin/cp db_config.php $DEPLOYPATH
+    - /bin/cp database_functions.php $DEPLOYPATH
+    - /bin/cp init_mysql.php $DEPLOYPATH
+    - /bin/cp -R static $DEPLOYPATH
+    - /bin/cp -R api $DEPLOYPATH
