@@ -284,9 +284,4 @@ $hv_id = $resume['id'] ?? 0;
     </div>
 </template>
 
-<script>
-    // Inyectar datos iniciales para JS
-    window.INITIAL_RESUME_DATA = <?php echo json_encode($resume); ?>;
-</script>
-
 <?php include 'footer.php'; ?>

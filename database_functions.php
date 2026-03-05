@@ -41,8 +41,9 @@ function init_db()
     $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS telefono VARCHAR(30) AFTER municipio_residencia");
     $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS email VARCHAR(100) AFTER telefono");
     $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS perfil_profesional TEXT AFTER email");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS profesion VARCHAR(255) AFTER perfil_profesional");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS foto_perfil_path VARCHAR(255) AFTER profesion");
     $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS documento_pdf_path VARCHAR(255) AFTER foto_perfil_path");
-    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER documento_pdf_path");
 
     $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida_habilidades (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -267,8 +268,8 @@ function get_all_resumes()
     $result = $conn->query($sql);
     $resumes = [];
     while ($row = $result->fetch_assoc()) {
-        // Map profession to niche if needed
-        $row['profesion'] = $row['perfil_profesional'] ? substr($row['perfil_profesional'], 0, 50) . '...' : 'N/A';
+        // Map profession
+        $row['profesion_display'] = $row['profesion'] ?: 'N/A';
         $resumes[] = $row;
     }
     return $resumes;

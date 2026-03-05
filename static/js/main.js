@@ -191,6 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('document_id', resumeForm.document_id.value);
                 formData.append('phone', resumeForm.phone.value);
                 formData.append('niche', resumeForm.niche.value);
+                formData.append('profesion', resumeForm.profesion.value);
                 formData.append('profile_description', resumeForm.profile_description.value);
             } else if (currentSection === 'skills') {
                 formData.append('skills', resumeForm.skills.value);
@@ -371,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td><strong>${resume.nombre_completo || (resume.nombre + ' ' + resume.apellido)}</strong></td>
-                        <td>${resume.profesion || 'N/A'}</td>
+                        <td>${resume.profesion_display || 'N/A'}</td>
                         <td>
                             <div style="font-size:0.85rem">
                                 <i class="fas fa-phone"></i> ${resume.telefono}<br>
