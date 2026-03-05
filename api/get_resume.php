@@ -3,7 +3,7 @@
 ini_set('display_errors', 0);
 header('Content-Type: application/json');
 session_start();
-require_once '../database_functions.php';
+require_once __DIR__ . '/../database_functions.php';
 
 $user_id = $_GET['user_id'] ?? ($_SESSION['user_id'] ?? null);
 $hv_id = $_GET['id'] ?? null;

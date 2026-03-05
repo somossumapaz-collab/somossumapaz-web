@@ -2,7 +2,7 @@
 // api/download_resume_pdf.php
 // Provides a professional printable view of the resume
 session_start();
-require_once '../database_functions.php';
+require_once __DIR__ . '/../database_functions.php';
 
 $user_id = $_GET['user_id'] ?? ($_SESSION['user_id'] ?? null);
 $hv_id = $_GET['id'] ?? null;

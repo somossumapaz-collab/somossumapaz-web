@@ -4,10 +4,11 @@ require_once 'database_functions.php';
 include 'header.php';
 check_auth();
 
-// Get current data if exists
-$user_id = $_SESSION['user_id'];
-$resume = get_complete_resume($user_id) ?? [];
-$hv_id = $resume['id'] ?? 0;
+include 'header.php';
+check_auth();
+
+// The form must always be empty for new input/upload as per user request.
+// We only need the user_id for the session, no automatic data retrieval here.
 ?>
 
 <div class="form-wrapper">
@@ -48,7 +49,7 @@ $hv_id = $resume['id'] ?? 0;
             </div>
         </div>
 
-        <form id="resume-form" data-hv-id="<?php echo $hv_id; ?>">
+        <form id="resume-form" data-hv-id="0">
 
             <!-- Section 1: Personal -->
             <div class="form-section-content active" id="section-personal">
@@ -57,7 +58,7 @@ $hv_id = $resume['id'] ?? 0;
                     <div class="input-group full-width" style="text-align: center; margin-bottom: 2rem;">
                         <div style="position: relative; display: inline-block;">
                             <img id="profile-preview"
-                                src="<?php echo !empty($resume['foto_perfil_path']) ? $resume['foto_perfil_path'] : 'static/img/default-avatar.png'; ?>"
+                                src="static/img/default-avatar.png"
                                 style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 4px solid var(--crema-sumapaz);">
                             <label for="photo-upload"
                                 style="position: absolute; bottom: 0; right: 0; background: var(--primary-color); color: white; padding: 8px; border-radius: 50%; cursor: pointer;">
@@ -65,59 +66,50 @@ $hv_id = $resume['id'] ?? 0;
                             </label>
                             <input type="file" id="photo-upload" name="photo" hidden accept="image/*">
                         </div>
-                        <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">Subir foto profesional (JPG, PNG -
-                            Max 5MB)</p>
+                        <p style="font-size: 0.8rem; color: #666; margin-top: 10px;">Subir foto profesional (JPG, PNG - Max 5MB)</p>
                     </div>
 
                     <div class="input-group">
                         <label>Nombre Completo</label>
-                        <input type="text" name="full_name"
-                            value="<?php echo htmlspecialchars($resume['nombre_completo'] ?? ''); ?>">
+                        <input type="text" name="full_name" value="">
                     </div>
                     <div class="input-group">
                         <label>Correo Electrónico</label>
-                        <input type="email" name="email"
-                            value="<?php echo htmlspecialchars($resume['email'] ?? ''); ?>">
+                        <input type="email" name="email" value="">
                     </div>
                     <div class="input-group">
                         <label>Tipo de Documento</label>
                         <select name="id_type">
-                            <option value="CC" <?php echo ($resume['tipo_documento'] ?? '') == 'CC' ? 'selected' : ''; ?>>
-                                Cédula de Ciudadanía</option>
-                            <option value="CE" <?php echo ($resume['tipo_documento'] ?? '') == 'CE' ? 'selected' : ''; ?>>
-                                Cédula de Extranjería</option>
-                            <option value="TI" <?php echo ($resume['tipo_documento'] ?? '') == 'TI' ? 'selected' : ''; ?>>
-                                Tarjeta de Identidad</option>
+                            <option value="CC">Cédula de Ciudadanía</option>
+                            <option value="CE">Cédula de Extranjería</option>
+                            <option value="TI">Tarjeta de Identidad</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label>Número de Documento</label>
-                        <input type="text" name="document_id"
-                            value="<?php echo htmlspecialchars($resume['numero_documento'] ?? ''); ?>">
+                        <input type="text" name="document_id" value="">
                     </div>
                     <div class="input-group">
                         <label>Teléfono de Contacto</label>
-                        <input type="text" name="phone"
-                            value="<?php echo htmlspecialchars($resume['telefono'] ?? ''); ?>">
+                        <input type="text" name="phone" value="">
                     </div>
                     <div class="input-group">
-                        <label>Profesión / Cargo Actual</label>
-                        <input type="text" name="niche"
-                            value="<?php echo htmlspecialchars($resume['profesion'] ?? ''); ?>">
+                        <label>Nicho de Interés / Cargo</label>
+                        <input type="text" name="niche" value="">
+                    </div>
+                    <div class="input-group">
+                        <label>Profesión / Oficio Específico</label>
+                        <input type="text" name="profesion" value="">
                     </div>
                     <div class="input-group full-width">
                         <label>Descripción del Perfil</label>
                         <textarea name="profile_description"
-                            placeholder="Escribe un breve resumen de tu perfil profesional..."><?php echo htmlspecialchars($resume['perfil_profesional'] ?? ''); ?></textarea>
+                            placeholder="Escribe un breve resumen de tu perfil profesional..."></textarea>
                     </div>
 
                     <div class="input-group">
                         <label>Documento de Identidad (PDF)</label>
                         <input type="file" name="id_file" accept=".pdf">
-                        <?php if (!empty($resume['documento_pdf_path'])): ?>
-                            <small><a href="<?php echo $resume['documento_pdf_path']; ?>" target="_blank">Ver archivo
-                                    actual</a></small>
-                        <?php endif; ?>
                     </div>
                 </div>
                 <div class="section-footer">
@@ -132,7 +124,7 @@ $hv_id = $resume['id'] ?? 0;
                 <h3>2. Habilidades</h3>
                 <div class="input-group">
                     <label>Tus habilidades (Separa por comas)</label>
-                    <input type="text" name="skills" value="<?php echo htmlspecialchars($resume['skills'] ?? ''); ?>"
+                    <input type="text" name="skills" value=""
                         placeholder="Ej: PHP, Liderazgo, Gestión de proyectos...">
                 </div>
                 <div class="section-footer">

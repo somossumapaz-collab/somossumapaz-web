@@ -1,6 +1,6 @@
 <?php
 // database_functions.php
-require_once 'db_config.php';
+require_once __DIR__ . '/db_config.php';
 
 function init_db()
 {
@@ -263,7 +263,7 @@ function get_all_resumes()
     // User's recommended SQL
     $sql = "SELECT 
                 hv.id, 
-                CONCAT(u.nombre,' ',u.apellido) AS nombre, 
+                COALESCE(CONCAT_WS(' ', NULLIF(u.nombre, ''), NULLIF(u.apellido, '')), hv.nombre_completo, u.usuario) AS nombre, 
                 hv.profesion AS nicho_cargo, 
                 u.telefono, 
                 u.email,

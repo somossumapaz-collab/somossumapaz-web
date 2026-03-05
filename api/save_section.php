@@ -3,7 +3,7 @@
 ini_set('display_errors', 0);
 header('Content-Type: application/json');
 session_start();
-require_once '../database_functions.php';
+require_once __DIR__ . '/../database_functions.php';
 require_once '../helpers/logger.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -51,16 +51,17 @@ try {
             $city = $data['city'] ?? '';
             $phone = $data['phone'] ?? '';
             $email = $data['email'] ?? '';
+            $profesion = $data['profesion'] ?? $data['niche'] ?? '';
             $perfil = $data['profile_description'] ?? '';
 
             $stmt = $conn->prepare("UPDATE hoja_vida SET 
                 nombre_completo = ?, tipo_documento = ?, numero_documento = ?, 
                 fecha_nacimiento = ?, departamento_nacimiento = ?, municipio_nacimiento = ?, 
                 departamento_residencia = ?, municipio_residencia = ?, telefono = ?, 
-                email = ?, perfil_profesional = ? 
+                email = ?, profesion = ?, perfil_profesional = ? 
                 WHERE id = ?");
             $stmt->bind_param(
-                "sssssssssssi",
+                "ssssssssssssi",
                 $nombre,
                 $id_type,
                 $doc_id,
@@ -71,15 +72,20 @@ try {
                 $city,
                 $phone,
                 $email,
+                $profesion,
                 $perfil,
                 $hoja_vida_id
             );
             if (!$stmt->execute())
                 throw new Exception("Error al guardar info personal");
 
-            // Also update usuarios table
-            $stmt_u = $conn->prepare("UPDATE usuarios SET email = ?, telefono = ?, documento = ?, tipo_documento = ? WHERE id = ?");
-            $stmt_u->bind_param("ssssi", $email, $phone, $doc_id, $id_type, $user_id);
+            // Also update usuarios table with names for CONCAT in dashboard
+            $parts = explode(' ', $nombre, 2);
+            $u_nombre = $parts[0];
+            $u_apellido = $parts[1] ?? '';
+
+            $stmt_u = $conn->prepare("UPDATE usuarios SET email = ?, telefono = ?, documento = ?, tipo_documento = ?, nombre = ?, apellido = ? WHERE id = ?");
+            $stmt_u->bind_param("ssssssi", $email, $phone, $doc_id, $id_type, $u_nombre, $u_apellido, $user_id);
             $stmt_u->execute();
 
             log_resume_event("Sección PERSONAL guardada para Hoja de Vida ID: $hoja_vida_id");
