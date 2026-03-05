@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // The PHP script now handles the individual fields.
 
             try {
-                const response = await fetch('api/submit_resume.php', {
+                const response = await fetch(resumeForm.action || 'api/submit_resume.php', {
                     method: 'POST',
                     body: formData
                 });

@@ -11,13 +11,38 @@ function init_db()
     $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida (
         id INT AUTO_INCREMENT PRIMARY KEY,
         usuario_id INT UNIQUE NOT NULL,
+        nombre_completo VARCHAR(255),
+        tipo_documento VARCHAR(50),
+        numero_documento VARCHAR(50),
+        fecha_nacimiento DATE,
+        departamento_nacimiento VARCHAR(100),
+        municipio_nacimiento VARCHAR(100),
+        departamento_residencia VARCHAR(100),
+        municipio_residencia VARCHAR(100),
+        telefono VARCHAR(30),
+        email VARCHAR(100),
+        perfil_profesional TEXT,
         foto_perfil_path VARCHAR(255),
-        documento_identidad_path VARCHAR(255),
-        profesion VARCHAR(150),
-        descripcion_perfil TEXT,
+        documento_pdf_path VARCHAR(255),
+        fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
     )");
+
+    // Migration: Add columns to hoja_vida if they don't exist
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS nombre_completo VARCHAR(255) AFTER usuario_id");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS tipo_documento VARCHAR(50) AFTER nombre_completo");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS numero_documento VARCHAR(50) AFTER tipo_documento");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS fecha_nacimiento DATE AFTER numero_documento");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS departamento_nacimiento VARCHAR(100) AFTER fecha_nacimiento");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS municipio_nacimiento VARCHAR(100) AFTER departamento_nacimiento");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS departamento_residencia VARCHAR(100) AFTER municipio_nacimiento");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS municipio_residencia VARCHAR(100) AFTER departamento_residencia");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS telefono VARCHAR(30) AFTER municipio_residencia");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS email VARCHAR(100) AFTER telefono");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS perfil_profesional TEXT AFTER email");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS documento_pdf_path VARCHAR(255) AFTER foto_perfil_path");
+    $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP AFTER documento_pdf_path");
 
     $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida_habilidades (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -234,7 +259,7 @@ function get_all_resumes()
     if (!$conn)
         return [];
 
-    $sql = "SELECT hv.*, u.nombre, u.apellido, u.email, u.telefono as phone, u.documento as document_id
+    $sql = "SELECT hv.*, u.email as user_email
             FROM hoja_vida hv
             JOIN usuarios u ON hv.usuario_id = u.id
             ORDER BY hv.fecha_actualizacion DESC";
@@ -242,8 +267,9 @@ function get_all_resumes()
     $result = $conn->query($sql);
     $resumes = [];
     while ($row = $result->fetch_assoc()) {
-        $row['full_name'] = $row['nombre'] . ' ' . $row['apellido'];
-        $row['niche'] = $row['profesion'];
+        $row['niche'] = $row['nombre_completo']; // Or map to whatever frontend expects
+        $row['descripcion_perfil'] = $row['perfil_profesional'];
+        $row['documento_identidad_path'] = $row['documento_pdf_path'];
 
         // Fetch relations for each resume to match what preview expects
         $id = $row['id'];
@@ -265,7 +291,7 @@ function get_all_resumes()
 
         // Map paths for compatibility with preview
         $row['photo_path'] = $row['foto_perfil_path'] ? str_replace('uploads/', '', $row['foto_perfil_path']) : null;
-        $row['id_file_path'] = $row['documento_identidad_path'] ? str_replace('uploads/', '', $row['documento_identidad_path']) : null;
+        $row['id_file_path'] = $row['documento_pdf_path'] ? str_replace('uploads/', '', $row['documento_pdf_path']) : null;
 
         $resumes[] = $row;
     }
@@ -281,7 +307,7 @@ function get_complete_resume($usuario_id)
     if (!$conn)
         return null;
 
-    $stmt = $conn->prepare("SELECT hv.*, u.nombre, u.apellido, u.email, u.telefono as phone, u.documento as document_id
+    $stmt = $conn->prepare("SELECT hv.*, u.email as user_email
                            FROM hoja_vida hv 
                            JOIN usuarios u ON hv.usuario_id = u.id 
                            WHERE hv.usuario_id = ?");
@@ -292,8 +318,10 @@ function get_complete_resume($usuario_id)
     if (!$resume)
         return null;
 
-    $resume['full_name'] = $resume['nombre'] . ' ' . $resume['apellido'];
-    $resume['niche'] = $resume['profesion'];
+    $resume['full_name'] = $resume['nombre_completo'];
+    $resume['niche'] = $resume['perfil_profesional'];
+    $resume['descripcion_perfil'] = $resume['perfil_profesional'];
+    $resume['documento_identidad_path'] = $resume['documento_pdf_path'];
     $id = $resume['id'];
 
     $stmt = $conn->prepare("SELECT * FROM hoja_vida_habilidades WHERE hoja_vida_id = ?");
