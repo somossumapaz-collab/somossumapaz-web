@@ -394,8 +394,9 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const formData = new FormData(resumeForm);
-            formData.append('personal_references_json', JSON.stringify([p1, p2]));
-            formData.append('family_references_json', JSON.stringify([f1, f2]));
+            // formData already contains all fields including ref_p1_name, etc.
+            // We can remove the redundant JSON strings if we want, or just leave them.
+            // The PHP script now handles the individual fields.
 
             try {
                 const response = await fetch('api/submit_resume.php', {
@@ -403,11 +404,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     body: formData
                 });
 
-                const result = await response.json();
-                if (response.ok) {
-                    alert('¡Hoja de vida completa registrada con éxito!');
-                    if (result.resume_id) {
-                        window.location.href = `resume_preview.php?resume_id=${result.resume_id}`;
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('¡Hoja de vida enviada correctamente!');
+                    if (data.resume_id) {
+                        window.location.href = `resume_preview.php?resume_id=${data.resume_id}`;
                     } else {
                         window.location.href = 'dashboard.php';
                     }
@@ -421,11 +423,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (skillsInput) skillsInput.value = '';
                     selectedSkills.clear();
                 } else {
-                    alert('Error: ' + result.message);
+                    alert('Error: ' + (data.error || 'Ocurrió un error desconocido'));
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Hubo un error al enviar el formulario.');
+                alert('Hubo un error al procesar la respuesta del servidor.');
             }
         });
     }

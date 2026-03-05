@@ -11,7 +11,7 @@ include 'header.php';
     <div class="form-container">
         <a href="dashboard.php" class="back-link">← Volver al Panel</a>
 
-        <form id="resume-form" class="comprehensive-form" enctype="multipart/form-data">
+        <form id="resume-form" class="comprehensive-form" method="POST" enctype="multipart/form-data">
             <div class="form-header">
                 <h2>Hoja de Vida Completa</h2>
                 <p>Por favor diligencia todos los campos requeridos.</p>
