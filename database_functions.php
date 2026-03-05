@@ -56,39 +56,44 @@ function init_db()
         FOREIGN KEY(resume_id) REFERENCES resumes(id)
     )");
 
-    $conn->query("CREATE TABLE IF NOT EXISTS users (
+    $conn->query("CREATE TABLE IF NOT EXISTS usuarios (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(255) UNIQUE NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        phone TEXT,
-        address TEXT,
-        city TEXT,
-        department TEXT,
-        password TEXT,
-        google_id TEXT
+        usuario VARCHAR(50) UNIQUE NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        nombre VARCHAR(100),
+        apellido VARCHAR(100),
+        telefono VARCHAR(30),
+        documento VARCHAR(50),
+        rol VARCHAR(20) DEFAULT 'usuario',
+        fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        activo TINYINT(1) DEFAULT 1
     )");
 
     // Default admin user
-    $checkAdmin = $conn->query("SELECT id FROM users WHERE username = 'admin'");
+    $checkAdmin = $conn->query("SELECT id FROM usuarios WHERE usuario = 'admin'");
     if ($checkAdmin->num_rows === 0) {
-        $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES ('admin', 'admin@talento.com', 'admin')");
+        $pass = password_hash('admin', PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("INSERT INTO usuarios (usuario, email, password, rol) VALUES ('admin', 'admin@somossumapaz.com', ?, 'admin')");
+        $stmt->bind_param("s", $pass);
         $stmt->execute();
     }
 }
 
-function verify_user($username, $password)
+function verify_user($identifier, $password)
 {
     $conn = get_db_connection();
     if (!$conn)
         return null;
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
+    // Check by username OR email and ensure active = 1
+    $stmt = $conn->prepare("SELECT * FROM usuarios WHERE (usuario = ? OR email = ?) AND activo = 1");
+    $stmt->bind_param("ss", $identifier, $identifier);
     $stmt->execute();
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
-    if ($user && $user['password'] === $password) {
+    if ($user && password_verify($password, $user['password'])) {
         return $user;
     }
     return null;
@@ -101,20 +106,36 @@ function create_user($data)
         return false;
 
     try {
-        $stmt = $conn->prepare("INSERT INTO users (username, email, phone, address, city, department, password) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $hashed_password = password_hash($data['password'], PASSWORD_DEFAULT);
+        $stmt = $conn->prepare("INSERT INTO usuarios (usuario, email, password, nombre, apellido, telefono, documento) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param(
             "sssssss",
-            $data['username'],
+            $data['usuario'],
             $data['email'],
-            $data['phone'],
-            $data['address'],
-            $data['city'],
-            $data['department'],
-            $data['password']
+            $hashed_password,
+            $data['nombre'],
+            $data['apellido'],
+            $data['telefono'],
+            $data['documento']
         );
         return $stmt->execute();
     } catch (Exception $e) {
         return false;
+    }
+}
+
+/**
+ * Proteger páginas privadas.
+ * Redirige a login_page.php si no hay sesión activa.
+ */
+function check_auth()
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+    if (!isset($_SESSION['user_id'])) {
+        header('Location: login_page.php');
+        exit;
     }
 }
 

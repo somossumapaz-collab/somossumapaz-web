@@ -23,26 +23,26 @@
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Número de teléfono</label>
-                <input type="tel" name="phone" required
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nombre</label>
+                <input type="text" name="nombre" required
                     style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
             </div>
             <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Dirección</label>
-                <input type="text" name="address" required
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Apellido</label>
+                <input type="text" name="apellido" required
                     style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
             </div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Ciudad</label>
-                <input type="text" name="city" required
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Número de teléfono</label>
+                <input type="tel" name="phone" required
                     style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
             </div>
             <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Departamento</label>
-                <input type="text" name="department" required
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Documento de Identidad</label>
+                <input type="text" name="documento" required
                     style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
             </div>
         </div>

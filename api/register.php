@@ -3,16 +3,16 @@ session_start();
 require_once '../database_functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
+    $usuario = $_POST['username'] ?? ''; // From form 'username'
     $email = $_POST['email'] ?? '';
-    $phone = $_POST['phone'] ?? '';
-    $address = $_POST['address'] ?? '';
-    $city = $_POST['city'] ?? '';
-    $department = $_POST['department'] ?? '';
+    $nombre = $_POST['nombre'] ?? '';
+    $apellido = $_POST['apellido'] ?? '';
+    $telefono = $_POST['phone'] ?? ''; // From form 'phone'
+    $documento = $_POST['documento'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm = $_POST['confirm_password'] ?? '';
 
-    if (empty($username) || empty($password) || empty($email)) {
+    if (empty($usuario) || empty($password) || empty($email)) {
         $_SESSION['flash_message'] = "El usuario, el correo y la contraseña son obligatorios";
         header('Location: ../register_page.php');
         exit;
@@ -25,12 +25,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $userData = [
-        'username' => $username,
+        'usuario' => $usuario,
         'email' => $email,
-        'phone' => $phone,
-        'address' => $address,
-        'city' => $city,
-        'department' => $department,
+        'nombre' => $nombre,
+        'apellido' => $apellido,
+        'telefono' => $telefono,
+        'documento' => $documento,
         'password' => $password
     ];
 

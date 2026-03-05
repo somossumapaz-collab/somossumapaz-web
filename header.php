@@ -137,7 +137,7 @@ session_start();
         <div class="nav-auth">
             <?php if (isset($_SESSION['user_id'])): ?>
                 <span>Hola, <strong>
-                        <?php echo $_SESSION['username']; ?>
+                        <?php echo $_SESSION['usuario']; ?>
                     </strong></span>
                 <a href="api/logout.php" class="btn-login">Cerrar Sesión</a>
             <?php else: ?>

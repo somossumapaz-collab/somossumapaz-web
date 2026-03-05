@@ -1,9 +1,7 @@
 <?php
+require_once 'database_functions.php';
 include 'header.php';
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login_page.php');
-    exit;
-}
+check_auth();
 ?>
 
 <div
@@ -48,11 +46,11 @@ if (!isset($_SESSION['user_id'])) {
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function ( ) {
         // El script main.js ya contiene la lógica de carga, 
         // solo aseguramos que el buscador filtre localmente
         const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', function () {
+        searchInput.addEventListener('input', function  () {
             const term = this.value.toLowerCase();
             const rows = document.querySelectorAll('#resumeTableBody tr');
             rows.forEach(row => {

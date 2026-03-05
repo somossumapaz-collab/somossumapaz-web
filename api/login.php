@@ -4,11 +4,11 @@ session_start();
 require_once '../database_functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
+    $identifier = $_POST['username'] ?? ''; // This can be username or email
     $password = $_POST['password'] ?? '';
     $remember = isset($_POST['remember']);
 
-    $user = verify_user($username, $password);
+    $user = verify_user($identifier, $password);
 
     if ($user) {
         if ($remember) {
@@ -16,13 +16,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
+        $_SESSION['usuario'] = $user['usuario'];
+        $_SESSION['rol'] = $user['rol'];
 
         header('Location: ../user_panel.php');
         exit;
     } else {
         $_SESSION['flash_error'] = 'Usuario o contraseña incorrectos';
-        header('Location: ../index.php');
+        header('Location: ../login_page.php');
         exit;
     }
 }

@@ -1,9 +1,7 @@
 <?php
+require_once 'database_functions.php';
 include 'header.php';
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login_page.php');
-    exit;
-}
+check_auth();
 ?>
 
 <div style="text-align: center; margin-bottom: 40px;">
