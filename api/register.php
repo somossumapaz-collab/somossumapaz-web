@@ -39,11 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'password' => $password
     ];
 
-    if (create_user($userData)) {
+    $result = create_user($userData);
+
+    if ($result === true) {
         $_SESSION['flash_message'] = "Registro exitoso. Ahora puedes iniciar sesión.";
         header('Location: ../login_page.php');
     } else {
-        $_SESSION['flash_message'] = "Error al crear el usuario. El nombre de usuario o correo ya pueden estar en uso.";
+        $_SESSION['flash_message'] = "Error al crear usuario: " . $result;
         header('Location: ../register_page.php');
     }
 }

@@ -104,11 +104,12 @@ function create_user($data)
 {
     $conn = get_db_connection();
     if (!$conn)
-        return false;
+        return "Error de conexión a la base de datos";
 
     try {
         $hashed_password = password_hash($data['password'], PASSWORD_DEFAULT);
         $stmt = $conn->prepare("INSERT INTO usuarios (usuario, email, password, nombre, apellido, telefono, documento, tipo_documento, rol, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'usuario', 1)");
+
         $stmt->bind_param(
             "ssssssss",
             $data['usuario'],
@@ -120,9 +121,13 @@ function create_user($data)
             $data['documento'],
             $data['tipo_documento']
         );
-        return $stmt->execute();
+
+        if (!$stmt->execute()) {
+            return $stmt->error;
+        }
+        return true;
     } catch (Exception $e) {
-        return false;
+        return $e->getMessage();
     }
 }
 
