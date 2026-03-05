@@ -23,11 +23,11 @@ include 'header.php';
                 <div class="grid-2">
                     <div class="input-group">
                         <label>Nombre Completo</label>
-                        <input type="text" name="full_name" required>
+                        <input type="text" name="full_name">
                     </div>
                     <div class="input-group">
                         <label>Tipo de Documento</label>
-                        <select name="id_type" required>
+                        <select name="id_type">
                             <option value="">Seleccione...</option>
                             <option value="CC">Cédula de Ciudadanía</option>
                             <option value="CE">Cédula de Extranjería</option>
@@ -38,47 +38,47 @@ include 'header.php';
                     </div>
                     <div class="input-group">
                         <label>Número de Documento</label>
-                        <input type="text" name="document_id" required>
+                        <input type="text" name="document_id">
                     </div>
                     <div class="input-group">
                         <label>Cargar Documento (PDF)</label>
-                        <input type="file" name="id_file" accept=".pdf" required>
+                        <input type="file" name="id_file" accept=".pdf">
                     </div>
                     <div class="input-group">
                         <label>Fecha de Nacimiento</label>
-                        <input type="date" name="birth_date" required>
+                        <input type="date" name="birth_date">
                     </div>
                     <div class="input-group">
                         <label>Departamento de Nacimiento</label>
-                        <select name="birth_department" id="birth_department" required>
+                        <select name="birth_department" id="birth_department">
                             <option value="">Cargando...</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label>Municipio de Nacimiento</label>
-                        <select name="birth_city" id="birth_city" disabled required>
+                        <select name="birth_city" id="birth_city" disabled>
                             <option value="">Seleccione Departamento primero</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label>Departamento de Residencia</label>
-                        <select name="department" id="department" required>
+                        <select name="department" id="department">
                             <option value="">Cargando...</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label>Municipio de Residencia</label>
-                        <select name="city" id="city" disabled required>
+                        <select name="city" id="city" disabled>
                             <option value="">Seleccione Departamento primero</option>
                         </select>
                     </div>
                     <div class="input-group">
                         <label>Teléfono (Solo números)</label>
-                        <input type="tel" name="phone" pattern="[0-9]+" title="Solo números" required>
+                        <input type="tel" name="phone" pattern="[0-9]+" title="Solo números">
                     </div>
                     <div class="input-group">
                         <label>Correo Electrónico</label>
-                        <input type="email" name="email" required>
+                        <input type="email" name="email">
                     </div>
                     <div class="input-group">
                         <label>Foto de Perfil (Opcional)</label>
@@ -87,7 +87,7 @@ include 'header.php';
                 </div>
                 <div class="input-group full-width">
                     <label>Perfil Profesional</label>
-                    <textarea name="profile_description" placeholder="Breve descripción de su perfil..." required
+                    <textarea name="profile_description" placeholder="Breve descripción de su perfil..."
                         style="height: 100px;"></textarea>
                 </div>
             </div>
@@ -97,7 +97,7 @@ include 'header.php';
                 <h3>2. Habilidades</h3>
                 <div class="input-group full-width">
                     <label>Seleccione su Nicho / Área</label>
-                    <select name="niche" id="niche-select" required>
+                    <select name="niche" id="niche-select">
                         <option value="">Seleccione...</option>
                         <!-- Populated by JS -->
                     </select>
@@ -135,30 +135,30 @@ include 'header.php';
                     <!-- Personal 1 -->
                     <div class="dynamic-item">
                         <h4>Personal 1</h4>
-                        <input type="text" name="ref_p1_name" placeholder="Nombre" required>
-                        <input type="tel" name="ref_p1_phone" placeholder="Teléfono" required>
-                        <input type="text" name="ref_p1_occupation" placeholder="Ocupación" required>
+                        <input type="text" name="ref_p1_name" placeholder="Nombre">
+                        <input type="tel" name="ref_p1_phone" placeholder="Teléfono">
+                        <input type="text" name="ref_p1_occupation" placeholder="Ocupación">
                     </div>
                     <!-- Personal 2 -->
                     <div class="dynamic-item">
                         <h4>Personal 2</h4>
-                        <input type="text" name="ref_p2_name" placeholder="Nombre" required>
-                        <input type="tel" name="ref_p2_phone" placeholder="Teléfono" required>
-                        <input type="text" name="ref_p2_occupation" placeholder="Ocupación" required>
+                        <input type="text" name="ref_p2_name" placeholder="Nombre">
+                        <input type="tel" name="ref_p2_phone" placeholder="Teléfono">
+                        <input type="text" name="ref_p2_occupation" placeholder="Ocupación">
                     </div>
                     <!-- Familiar 1 -->
                     <div class="dynamic-item">
                         <h4>Familiar 1</h4>
-                        <input type="text" name="ref_f1_name" placeholder="Nombre" required>
-                        <input type="tel" name="ref_f1_phone" placeholder="Teléfono" required>
-                        <input type="text" name="ref_f1_relation" placeholder="Parentesco" required>
+                        <input type="text" name="ref_f1_name" placeholder="Nombre">
+                        <input type="tel" name="ref_f1_phone" placeholder="Teléfono">
+                        <input type="text" name="ref_f1_relation" placeholder="Parentesco">
                     </div>
                     <!-- Familiar 2 -->
                     <div class="dynamic-item">
                         <h4>Familiar 2</h4>
-                        <input type="text" name="ref_f2_name" placeholder="Nombre" required>
-                        <input type="tel" name="ref_f2_phone" placeholder="Teléfono" required>
-                        <input type="text" name="ref_f2_relation" placeholder="Parentesco" required>
+                        <input type="text" name="ref_f2_name" placeholder="Nombre">
+                        <input type="tel" name="ref_f2_phone" placeholder="Teléfono">
+                        <input type="text" name="ref_f2_relation" placeholder="Parentesco">
                     </div>
                 </div>
             </div>

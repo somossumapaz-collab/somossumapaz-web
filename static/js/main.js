@@ -407,7 +407,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    const downloadDraft = confirm('¡Hoja de vida guardada correctamente!\n\n¿Desea descargar un borrador de su hoja de vida ahora?');
+                    let logMessage = '';
+                    if (data.log && Array.isArray(data.log)) {
+                        logMessage = '\n\nDetalle de comunicación:\n' + data.log.join('\n');
+                    }
+
+                    const downloadDraft = confirm('¡Hoja de vida guardada correctamente!' + logMessage + '\n\n¿Desea descargar un borrador de su hoja de vida ahora?');
 
                     if (downloadDraft && data.draft_url) {
                         window.open(data.draft_url, '_blank');

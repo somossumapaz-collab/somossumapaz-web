@@ -36,6 +36,7 @@ if (!$conn) {
 }
 
 try {
+    $log = [];
     ensure_directories();
     $conn->begin_transaction();
 
@@ -54,12 +55,14 @@ try {
         $stmt->bind_param("ssi", $profesion, $descripcion_perfil, $hoja_vida_id);
         if (!$stmt->execute())
             throw new Exception("Error al actualizar hoja_vida: " . $stmt->error);
+        $log[] = "Comunicación BD: Actualizada tabla 'hoja_vida' (ID: $hoja_vida_id)";
     } else {
         $stmt = $conn->prepare("INSERT INTO hoja_vida (usuario_id, profesion, descripcion_perfil) VALUES (?, ?, ?)");
         $stmt->bind_param("iss", $user_id, $profesion, $descripcion_perfil);
         if (!$stmt->execute())
             throw new Exception("Error al insertar hoja_vida: " . $stmt->error);
         $hoja_vida_id = $conn->insert_id;
+        $log[] = "Comunicación BD: Insertado nuevo registro en tabla 'hoja_vida' (ID: $hoja_vida_id)";
     }
 
     // 2. Foto de Perfil
@@ -76,11 +79,14 @@ try {
         if (!file_exists($target))
             throw new Exception("La foto de perfil no se guardó correctamente en el servidor");
 
+        $log[] = "Archivo: Guardada foto de perfil en '$target'";
+
         $db_path = "uploads/fotos_perfil/" . $filename;
         $stmt = $conn->prepare("UPDATE hoja_vida SET foto_perfil_path = ? WHERE id = ?");
         $stmt->bind_param("si", $db_path, $hoja_vida_id);
         if (!$stmt->execute())
             throw new Exception("Error al actualizar ruta de foto en BD: " . $stmt->error);
+        $log[] = "Comunicación BD: Actualizada ruta de foto en tabla 'hoja_vida'";
     }
 
     // 3. Documento ID
@@ -98,34 +104,42 @@ try {
         if (!file_exists($target))
             throw new Exception("El documento ID no se guardó correctamente en el servidor");
 
+        $log[] = "Archivo: Guardado documento ID en '$target'";
+
         $db_path = "uploads/documentos_identidad/" . $filename;
         $stmt = $conn->prepare("UPDATE hoja_vida SET documento_identidad_path = ? WHERE id = ?");
         $stmt->bind_param("si", $db_path, $hoja_vida_id);
         if (!$stmt->execute())
             throw new Exception("Error al actualizar ruta de documento en BD: " . $stmt->error);
+        $log[] = "Comunicación BD: Actualizada ruta de documento ID en tabla 'hoja_vida'";
     }
 
     // 4. Habilidades
     $stmt = $conn->prepare("DELETE FROM hoja_vida_habilidades WHERE hoja_vida_id = ?");
     $stmt->bind_param("i", $hoja_vida_id);
     $stmt->execute();
+    $log[] = "Comunicación BD: Limpiadas habilidades previas en 'hoja_vida_habilidades'";
 
     $skills_raw = $_POST['skills'] ?? '';
     if (!empty($skills_raw)) {
         $skills_array = explode(',', $skills_raw);
         $stmt = $conn->prepare("INSERT INTO hoja_vida_habilidades (hoja_vida_id, habilidad) VALUES (?, ?)");
+        $count = 0;
         foreach ($skills_array as $skill) {
             $name = trim($skill);
             if ($name) {
                 $stmt->bind_param("is", $hoja_vida_id, $name);
                 if (!$stmt->execute())
                     throw new Exception("Error al insertar habilidad: $name");
+                $count++;
             }
         }
+        $log[] = "Comunicación BD: Insertadas $count habilidades en 'hoja_vida_habilidades'";
     }
 
     // 5. Formación
     $conn->query("DELETE FROM hoja_vida_formacion WHERE hoja_vida_id = $hoja_vida_id");
+    $log[] = "Comunicación BD: Limpiada formación previa en 'hoja_vida_formacion'";
     $i = 0;
     while (isset($_POST["education_{$i}_institution"])) {
         $nivel = $_POST["education_{$i}_level"] ?? '';
@@ -139,6 +153,7 @@ try {
         if (!$stmt->execute())
             throw new Exception("Error al insertar formación $i");
         $edu_id = $conn->insert_id;
+        $log[] = "Comunicación BD: Insertado estudio $i (ID: $edu_id) en 'hoja_vida_formacion'";
 
         if (isset($_FILES["education_{$i}_file"]) && $_FILES["education_{$i}_file"]['error'] === UPLOAD_ERR_OK) {
             $fname = "formacion_" . $edu_id . ".pdf";
@@ -149,10 +164,13 @@ try {
             if (!file_exists($target))
                 throw new Exception("El certificado de formación $i no se guardó correctamente");
 
+            $log[] = "Archivo: Guardado certificado académico en '$target'";
+
             $db_p = "uploads/certificados_academicos/" . $fname;
             $stmt = $conn->prepare("UPDATE hoja_vida_formacion SET soporte_path = ? WHERE id = ?");
             $stmt->bind_param("si", $db_p, $edu_id);
             $stmt->execute();
+            $log[] = "Comunicación BD: Actualizada ruta de certificado en 'hoja_vida_formacion' para ID $edu_id";
         }
         $i++;
     }
@@ -172,6 +190,7 @@ try {
         if (!$stmt->execute())
             throw new Exception("Error al insertar experiencia $j");
         $exp_id = $conn->insert_id;
+        $log[] = "Comunicación BD: Insertada experiencia $j (ID: $exp_id) en 'hoja_vida_experiencia'";
 
         if (isset($_FILES["experience_{$j}_file"]) && $_FILES["experience_{$j}_file"]['error'] === UPLOAD_ERR_OK) {
             $fname = "experiencia_" . $exp_id . ".pdf";
@@ -192,6 +211,8 @@ try {
 
     // 7. Referencias
     $conn->query("DELETE FROM hoja_vida_referencias WHERE hoja_vida_id = $hoja_vida_id");
+    $log[] = "Comunicación BD: Limpiadas referencias previas en 'hoja_vida_referencias'";
+    $ref_count = 0;
     for ($k = 1; $k <= 2; $k++) {
         $np = $_POST["ref_p{$k}_name"] ?? '';
         if ($np) {
@@ -199,6 +220,7 @@ try {
             $stmt->bind_param("isss", $hoja_vida_id, $np, $_POST["ref_p{$k}_phone"], $_POST["ref_p{$k}_occupation"]);
             if (!$stmt->execute())
                 throw new Exception("Error al insertar ref personal $k");
+            $ref_count++;
         }
         $nf = $_POST["ref_f{$k}_name"] ?? '';
         if ($nf) {
@@ -206,10 +228,13 @@ try {
             $stmt->bind_param("isss", $hoja_vida_id, $nf, $_POST["ref_f{$k}_phone"], $_POST["ref_f{$k}_relation"]);
             if (!$stmt->execute())
                 throw new Exception("Error al insertar ref familiar $k");
+            $ref_count++;
         }
     }
+    $log[] = "Comunicación BD: Insertadas $ref_count referencias en 'hoja_vida_referencias'";
 
     $conn->commit();
+    $log[] = "Transacción: COMMIT finalizado exitosamente.";
 
     // Verification Step: Read back some data to ensure it's there
     $verify_stmt = $conn->prepare("SELECT id FROM hoja_vida WHERE id = ?");
@@ -218,12 +243,14 @@ try {
     if (!$verify_stmt->get_result()->fetch_assoc()) {
         throw new Exception("Error crítico: No se pudo verificar la existencia de la hoja de vida después de guardar");
     }
+    $log[] = "Verificación: Se confirmó la existencia del registro final ID $hoja_vida_id.";
 
     echo json_encode([
         'success' => true,
         'message' => '¡Hoja de vida guardada exitosamente!',
         'hoja_vida_id' => $hoja_vida_id,
-        'draft_url' => 'api/download_draft.php?hoja_vida_id=' . $hoja_vida_id
+        'draft_url' => 'api/download_draft.php?hoja_vida_id=' . $hoja_vida_id,
+        'log' => $log
     ]);
 
 } catch (Exception $e) {
