@@ -65,6 +65,7 @@ function init_db()
         apellido VARCHAR(100),
         telefono VARCHAR(30),
         documento VARCHAR(50),
+        tipo_documento VARCHAR(50),
         rol VARCHAR(20) DEFAULT 'usuario',
         fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         activo TINYINT(1) DEFAULT 1
@@ -107,16 +108,17 @@ function create_user($data)
 
     try {
         $hashed_password = password_hash($data['password'], PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("INSERT INTO usuarios (usuario, email, password, nombre, apellido, telefono, documento) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO usuarios (usuario, email, password, nombre, apellido, telefono, documento, tipo_documento, rol, activo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'usuario', 1)");
         $stmt->bind_param(
-            "sssssss",
+            "ssssssss",
             $data['usuario'],
             $data['email'],
             $hashed_password,
             $data['nombre'],
             $data['apellido'],
             $data['telefono'],
-            $data['documento']
+            $data['documento'],
+            $data['tipo_documento']
         );
         return $stmt->execute();
     } catch (Exception $e) {

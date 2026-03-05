@@ -9,11 +9,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $apellido = $_POST['apellido'] ?? '';
     $telefono = $_POST['phone'] ?? ''; // From form 'phone'
     $documento = $_POST['documento'] ?? '';
+    $tipo_documento = $_POST['tipo_documento'] ?? '';
     $password = $_POST['password'] ?? '';
     $confirm = $_POST['confirm_password'] ?? '';
 
-    if (empty($usuario) || empty($password) || empty($email)) {
-        $_SESSION['flash_message'] = "El usuario, el correo y la contraseña son obligatorios";
+    if (empty($usuario) || empty($password) || empty($email) || empty($documento) || empty($tipo_documento)) {
+        $_SESSION['flash_message'] = "Todos los campos obligatorios deben ser completados";
         header('Location: ../register_page.php');
         exit;
     }
@@ -31,6 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'apellido' => $apellido,
         'telefono' => $telefono,
         'documento' => $documento,
+        'tipo_documento' => $tipo_documento,
         'password' => $password
     ];
 

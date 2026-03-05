@@ -8,19 +8,7 @@
     </div>
 
     <form action="api/register.php" method="POST">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Usuario</label>
-                <input type="text" name="username" required
-                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
-            </div>
-            <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Correo electrónico</label>
-                <input type="email" name="email" required
-                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
-            </div>
-        </div>
-
+        <!-- Fila 1: Nombre y Apellido -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Nombre</label>
@@ -34,11 +22,25 @@
             </div>
         </div>
 
+        <!-- Fila 2: Correo Electrónico -->
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Correo electrónico</label>
+            <input type="email" name="email" required
+                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
+        </div>
+
+        <!-- Fila 3: Tipo Documento y Documento -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
             <div>
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Número de teléfono</label>
-                <input type="tel" name="phone" required
-                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Tipo de Documento</label>
+                <select name="tipo_documento" required
+                    style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none; background: white;">
+                    <option value="">Seleccione...</option>
+                    <option value="CC">Cédula de Ciudadanía</option>
+                    <option value="CE">Cédula de Extranjería</option>
+                    <option value="TI">Tarjeta de Identidad</option>
+                    <option value="PAS">Pasaporte</option>
+                </select>
             </div>
             <div>
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Documento de Identidad</label>
@@ -47,6 +49,21 @@
             </div>
         </div>
 
+        <!-- Fila 4: Número de Teléfono -->
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Número de teléfono</label>
+            <input type="tel" name="phone" required
+                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
+        </div>
+
+        <!-- Fila 5: Usuario -->
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 8px; font-weight: 600;">Usuario</label>
+            <input type="text" name="username" required
+                style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
+        </div>
+
+        <!-- Fila 6: Contraseña y Confirmar -->
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
             <div>
                 <label style="display: block; margin-bottom: 8px; font-weight: 600;">Contraseña</label>
@@ -60,8 +77,12 @@
             </div>
         </div>
 
-        <button type="submit" class="btn-register"
-            style="width: 100%; border: none; padding: 14px; font-size: 1.1rem; cursor: pointer; font-weight: 600;">Regístrate</button>
+        <div style="text-align: center;">
+            <button type="submit" class="btn-register"
+                style="border: none; padding: 12px 40px; font-size: 1rem; cursor: pointer; font-weight: 600; border-radius: 30px; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);">
+                Registrarme Ahora
+            </button>
+        </div>
     </form>
 
     <p style="text-align: center; margin-top: 25px; color: #666; font-size: 0.95rem;">
