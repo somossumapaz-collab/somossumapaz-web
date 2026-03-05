@@ -407,9 +407,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('¡Hoja de vida enviada correctamente!');
-                    if (data.resume_id) {
-                        window.location.href = `resume_preview.php?resume_id=${data.resume_id}`;
+                    alert('¡Hoja de vida guardada correctamente!');
+                    if (data.hoja_vida_id) {
+                        window.location.href = `resume_preview.php?resume_id=${data.hoja_vida_id}`;
                     } else {
                         window.location.href = 'dashboard.php';
                     }
@@ -423,7 +423,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (skillsInput) skillsInput.value = '';
                     selectedSkills.clear();
                 } else {
-                    alert('Error: ' + (data.error || 'Ocurrió un error desconocido'));
+                    const errorMsg = data.detalle ? `${data.error}: ${data.detalle}` : (data.error || 'Ocurrió un error desconocido');
+                    alert('Error: ' + errorMsg);
                 }
             } catch (error) {
                 console.error('Error:', error);
