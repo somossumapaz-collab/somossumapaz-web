@@ -10,7 +10,7 @@ function init_db()
 
     $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        usuario_id INT UNIQUE NOT NULL,
+        usuario_id INT NOT NULL,
         nombre_completo VARCHAR(255),
         tipo_documento VARCHAR(50),
         numero_documento VARCHAR(50),
@@ -22,12 +22,16 @@ function init_db()
         telefono VARCHAR(30),
         email VARCHAR(100),
         perfil_profesional TEXT,
+        profesion VARCHAR(255),
         foto_perfil_path VARCHAR(255),
         documento_pdf_path VARCHAR(255),
         fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
     )");
+
+    // Migration: Remove UNIQUE constraint if it exists (dropping and recreating index is safer in MySQL for this)
+    $conn->query("ALTER TABLE hoja_vida DROP INDEX IF EXISTS usuario_id");
 
     // Migration: Add columns to hoja_vida if they don't exist
     $conn->query("ALTER TABLE hoja_vida ADD COLUMN IF NOT EXISTS nombre_completo VARCHAR(255) AFTER usuario_id");
