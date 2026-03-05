@@ -8,52 +8,61 @@ function init_db()
     if (!$conn)
         return;
 
-    $conn->query("CREATE TABLE IF NOT EXISTS resumes (
+    $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        full_name TEXT NOT NULL,
-        document_id TEXT NOT NULL,
-        email TEXT NOT NULL,
-        phone TEXT NOT NULL,
-        skills TEXT,
-        experience TEXT,
-        birth_date TEXT,
-        city TEXT,
-        department TEXT,
-        profile_description TEXT,
-        photo_path TEXT,
-        document_path TEXT,
-        diploma_path TEXT,
-        id_type TEXT,
-        niche TEXT,
-        birth_department TEXT,
-        birth_city TEXT,
-        id_file_path TEXT,
-        personal_references_json TEXT,
-        family_references_json TEXT
+        usuario_id INT UNIQUE NOT NULL,
+        foto_perfil_path VARCHAR(255),
+        documento_identidad_path VARCHAR(255),
+        profesion VARCHAR(150),
+        descripcion_perfil TEXT,
+        fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
     )");
 
-    $conn->query("CREATE TABLE IF NOT EXISTS education (
+    $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida_habilidades (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        resume_id INT,
-        level TEXT,
-        institution TEXT,
-        start_date TEXT,
-        end_date TEXT,
-        is_current TINYINT(1),
-        certificate_path TEXT,
-        FOREIGN KEY(resume_id) REFERENCES resumes(id)
+        hoja_vida_id INT NOT NULL,
+        habilidad VARCHAR(100),
+        nivel VARCHAR(50),
+        FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id)
     )");
 
-    $conn->query("CREATE TABLE IF NOT EXISTS experience (
+    $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida_formacion (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        resume_id INT,
-        role TEXT,
-        company TEXT,
-        start_date TEXT,
-        end_date TEXT,
-        is_current TINYINT(1),
-        certificate_path TEXT,
-        FOREIGN KEY(resume_id) REFERENCES resumes(id)
+        hoja_vida_id INT NOT NULL,
+        nivel_educativo VARCHAR(100),
+        institucion VARCHAR(150),
+        fecha_inicio DATE,
+        fecha_fin DATE,
+        en_curso TINYINT(1) DEFAULT 0,
+        soporte_id VARCHAR(100),
+        soporte_path VARCHAR(255),
+        FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id)
+    )");
+
+    $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida_experiencia (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        hoja_vida_id INT NOT NULL,
+        cargo VARCHAR(150),
+        empresa VARCHAR(150),
+        descripcion_cargo TEXT,
+        fecha_inicio DATE,
+        fecha_fin DATE,
+        actualmente TINYINT(1) DEFAULT 0,
+        soporte_id VARCHAR(100),
+        soporte_path VARCHAR(255),
+        FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id)
+    )");
+
+    $conn->query("CREATE TABLE IF NOT EXISTS hoja_vida_referencias (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        hoja_vida_id INT NOT NULL,
+        tipo VARCHAR(50),
+        nombre VARCHAR(150),
+        telefono VARCHAR(30),
+        ocupacion VARCHAR(150),
+        parentesco VARCHAR(100),
+        FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id)
     )");
 
     $conn->query("CREATE TABLE IF NOT EXISTS usuarios (
@@ -146,130 +155,108 @@ function check_auth()
     }
 }
 
-function add_resume_comprehensive($data, $education_list = [], $experience_list = [])
+/**
+ * Obtener o crear hoja de vida para un usuario.
+ */
+function get_or_create_resume($usuario_id)
 {
     $conn = get_db_connection();
     if (!$conn)
         return null;
 
-    try {
-        $conn->begin_transaction();
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida WHERE usuario_id = ?");
+    $stmt->bind_param("i", $usuario_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $resume = $result->fetch_assoc();
 
-        $sql = "INSERT INTO resumes (
-            full_name, document_id, email, phone, skills, experience,
-            birth_date, city, department, profile_description,
-            photo_path, id_file_path, id_type, niche, birth_department, 
-            birth_city, personal_references_json, family_references_json
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        $stmt = $conn->prepare($sql);
-        $full_name = $data['full_name'] ?? null;
-        $document_id = $data['document_id'] ?? null;
-        $email = $data['email'] ?? null;
-        $phone = $data['phone'] ?? null;
-        $skills = $data['skills'] ?? '';
-        $exp_summary = $data['experience_summary'] ?? '';
-        $birth_date = $data['birth_date'] ?? null;
-        $city = $data['city'] ?? null;
-        $dept = $data['department'] ?? null;
-        $prof_desc = $data['profile_description'] ?? null;
-        $photo = $data['photo'] ?? null;
-        $id_file = $data['id_file_path'] ?? null;
-        $id_type = $data['id_type'] ?? null;
-        $niche = $data['niche'] ?? null;
-        $birth_dept = $data['birth_department'] ?? null;
-        $birth_city = $data['birth_city'] ?? null;
-        $personal_refs = $data['personal_references_json'] ?? '[]';
-        $family_refs = $data['family_references_json'] ?? '[]';
-
-        $stmt->bind_param(
-            "ssssssssssssssssss",
-            $full_name,
-            $document_id,
-            $email,
-            $phone,
-            $skills,
-            $exp_summary,
-            $birth_date,
-            $city,
-            $dept,
-            $prof_desc,
-            $photo,
-            $id_file,
-            $id_type,
-            $niche,
-            $birth_dept,
-            $birth_city,
-            $personal_refs,
-            $family_refs
-        );
+    if (!$resume) {
+        $stmt = $conn->prepare("INSERT INTO hoja_vida (usuario_id) VALUES (?)");
+        $stmt->bind_param("i", $usuario_id);
         $stmt->execute();
-
-        $resume_id = $conn->insert_id;
-
-        foreach ($education_list as $edu) {
-            $stmt_edu = $conn->prepare("INSERT INTO education (resume_id, level, institution, start_date, end_date, is_current, certificate_path)
-                                   VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $is_current = $edu['is_current'] ? 1 : 0;
-            $stmt_edu->bind_param(
-                "issssss",
-                $resume_id,
-                $edu['level'],
-                $edu['institution'],
-                $edu['start_date'],
-                $edu['end_date'],
-                $is_current,
-                $edu['certificate_path']
-            );
-            $stmt_edu->execute();
-        }
-
-        foreach ($experience_list as $exp) {
-            $stmt_exp = $conn->prepare("INSERT INTO experience (resume_id, role, company, start_date, end_date, is_current, certificate_path)
-                                   VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $is_current_exp = $exp['is_current'] ? 1 : 0;
-            $stmt_exp->bind_param(
-                "issssss",
-                $resume_id,
-                $exp['role'],
-                $exp['company'],
-                $exp['start_date'],
-                $exp['end_date'],
-                $is_current_exp,
-                $exp['certificate_path']
-            );
-            $stmt_exp->execute();
-        }
-
-        $conn->commit();
-        return $resume_id;
-    } catch (Exception $e) {
-        $conn->rollback();
-        return null;
+        $id = $conn->insert_id;
+        return ['id' => $id, 'usuario_id' => $usuario_id];
     }
+
+    return $resume;
 }
 
-function get_all_resumes()
+/**
+ * Agregar experiencia laboral.
+ */
+function add_experience($hoja_vida_id, $data)
 {
     $conn = get_db_connection();
     if (!$conn)
-        return [];
+        return false;
 
-    $result = $conn->query("SELECT * FROM resumes ORDER BY id DESC");
-    $resumes = $result->fetch_all(MYSQLI_ASSOC);
+    $stmt = $conn->prepare("INSERT INTO hoja_vida_experiencia (hoja_vida_id, cargo, empresa, descripcion_cargo, fecha_inicio, fecha_fin, actualmente, soporte_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $actualmente = $data['actualmente'] ? 1 : 0;
+    $stmt->bind_param("isssssis", $hoja_vida_id, $data['cargo'], $data['empresa'], $data['descripcion_cargo'], $data['fecha_inicio'], $data['fecha_fin'], $actualmente, $data['soporte_id']);
+    return $stmt->execute();
+}
 
-    foreach ($resumes as &$resume) {
-        $stmt_edu = $conn->prepare("SELECT * FROM education WHERE resume_id = ?");
-        $stmt_edu->bind_param("i", $resume['id']);
-        $stmt_edu->execute();
-        $resume['education'] = $stmt_edu->get_result()->fetch_all(MYSQLI_ASSOC);
+/**
+ * Agregar formación académica.
+ */
+function add_education($hoja_vida_id, $data)
+{
+    $conn = get_db_connection();
+    if (!$conn)
+        return false;
 
-        $stmt_exp = $conn->prepare("SELECT * FROM experience WHERE resume_id = ?");
-        $stmt_exp->bind_param("i", $resume['id']);
-        $stmt_exp->execute();
-        $resume['experience'] = $stmt_exp->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
+    $stmt = $conn->prepare("INSERT INTO hoja_vida_formacion (hoja_vida_id, nivel_educativo, institucion, fecha_inicio, fecha_fin, en_curso, soporte_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $en_curso = $data['en_curso'] ? 1 : 0;
+    $stmt->bind_param("issssis", $hoja_vida_id, $data['nivel_educativo'], $data['institucion'], $data['fecha_inicio'], $data['fecha_fin'], $en_curso, $data['soporte_id']);
+    return $stmt->execute();
+}
 
-    return $resumes;
+/**
+ * Agregar referencia.
+ */
+function add_reference($hoja_vida_id, $data)
+{
+    $conn = get_db_connection();
+    if (!$conn)
+        return false;
+
+    $stmt = $conn->prepare("INSERT INTO hoja_vida_referencias (hoja_vida_id, tipo, nombre, telefono, ocupacion, parentesco) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("isssss", $hoja_vida_id, $data['tipo'], $data['nombre'], $data['telefono'], $data['ocupacion'], $data['parentesco']);
+    return $stmt->execute();
+}
+
+/**
+ * Obtener hoja de vida completa.
+ */
+function get_complete_resume($usuario_id)
+{
+    $conn = get_db_connection();
+    if (!$conn)
+        return null;
+
+    $resume = get_or_create_resume($usuario_id);
+    $id = $resume['id'];
+
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida_habilidades WHERE hoja_vida_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resume['habilidades'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida_formacion WHERE hoja_vida_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resume['formacion'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida_experiencia WHERE hoja_vida_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resume['experiencia'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida_referencias WHERE hoja_vida_id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resume['referencias'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    return $resume;
 }
 ?>
