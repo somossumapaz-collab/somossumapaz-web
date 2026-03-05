@@ -407,11 +407,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('¡Hoja de vida guardada correctamente!');
+                    const downloadDraft = confirm('¡Hoja de vida guardada correctamente!\n\n¿Desea descargar un borrador de su hoja de vida ahora?');
+
+                    if (downloadDraft && data.draft_url) {
+                        window.open(data.draft_url, '_blank');
+                    }
+
                     if (data.hoja_vida_id) {
                         window.location.href = `resume_preview.php?resume_id=${data.hoja_vida_id}`;
                     } else {
-                        window.location.href = 'dashboard.php';
+                        window.location.href = 'user_panel.php';
                     }
                     resumeForm.reset();
                     // Clear dynamic lists

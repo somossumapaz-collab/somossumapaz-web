@@ -226,6 +226,53 @@ function add_reference($hoja_vida_id, $data)
 }
 
 /**
+ * Obtener todas las hojas de vida con info básica del usuario.
+ */
+function get_all_resumes()
+{
+    $conn = get_db_connection();
+    if (!$conn)
+        return [];
+
+    $sql = "SELECT hv.*, u.nombre, u.apellido, u.email, u.telefono as phone, u.documento as document_id
+            FROM hoja_vida hv
+            JOIN usuarios u ON hv.usuario_id = u.id
+            ORDER BY hv.fecha_actualizacion DESC";
+
+    $result = $conn->query($sql);
+    $resumes = [];
+    while ($row = $result->fetch_assoc()) {
+        $row['full_name'] = $row['nombre'] . ' ' . $row['apellido'];
+        $row['niche'] = $row['profesion'];
+
+        // Fetch relations for each resume to match what preview expects
+        $id = $row['id'];
+
+        $stmt = $conn->prepare("SELECT * FROM hoja_vida_formacion WHERE hoja_vida_id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $row['education'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $stmt = $conn->prepare("SELECT * FROM hoja_vida_experiencia WHERE hoja_vida_id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $row['experience'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        $stmt = $conn->prepare("SELECT * FROM hoja_vida_referencias WHERE hoja_vida_id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $row['referencias'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+        // Map paths for compatibility with preview
+        $row['photo_path'] = $row['foto_perfil_path'] ? str_replace('uploads/', '', $row['foto_perfil_path']) : null;
+        $row['id_file_path'] = $row['documento_identidad_path'] ? str_replace('uploads/', '', $row['documento_identidad_path']) : null;
+
+        $resumes[] = $row;
+    }
+    return $resumes;
+}
+
+/**
  * Obtener hoja de vida completa.
  */
 function get_complete_resume($usuario_id)
@@ -234,7 +281,19 @@ function get_complete_resume($usuario_id)
     if (!$conn)
         return null;
 
-    $resume = get_or_create_resume($usuario_id);
+    $stmt = $conn->prepare("SELECT hv.*, u.nombre, u.apellido, u.email, u.telefono as phone, u.documento as document_id
+                           FROM hoja_vida hv 
+                           JOIN usuarios u ON hv.usuario_id = u.id 
+                           WHERE hv.usuario_id = ?");
+    $stmt->bind_param("i", $usuario_id);
+    $stmt->execute();
+    $resume = $stmt->get_result()->fetch_assoc();
+
+    if (!$resume)
+        return null;
+
+    $resume['full_name'] = $resume['nombre'] . ' ' . $resume['apellido'];
+    $resume['niche'] = $resume['profesion'];
     $id = $resume['id'];
 
     $stmt = $conn->prepare("SELECT * FROM hoja_vida_habilidades WHERE hoja_vida_id = ?");
@@ -242,10 +301,13 @@ function get_complete_resume($usuario_id)
     $stmt->execute();
     $resume['habilidades'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
+    // Skills as comma separated string for preview
+    $resume['skills'] = implode(', ', array_column($resume['habilidades'], 'habilidad'));
+
     $stmt = $conn->prepare("SELECT * FROM hoja_vida_formacion WHERE hoja_vida_id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    $resume['formacion'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $resume['education'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     $stmt = $conn->prepare("SELECT * FROM hoja_vida_experiencia WHERE hoja_vida_id = ?");
     $stmt->bind_param("i", $id);

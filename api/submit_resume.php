@@ -71,13 +71,16 @@ try {
         $filename = "foto_usuario_" . $hoja_vida_id . "." . $ext;
         $target = "../uploads/fotos_perfil/" . $filename;
         if (!move_uploaded_file($_FILES['photo']['tmp_name'], $target))
-            throw new Exception("Error al mover foto de perfil");
+            throw new Exception("Error al mover foto de perfil a $target");
+
+        if (!file_exists($target))
+            throw new Exception("La foto de perfil no se guardó correctamente en el servidor");
 
         $db_path = "uploads/fotos_perfil/" . $filename;
         $stmt = $conn->prepare("UPDATE hoja_vida SET foto_perfil_path = ? WHERE id = ?");
         $stmt->bind_param("si", $db_path, $hoja_vida_id);
         if (!$stmt->execute())
-            throw new Exception("Error al actualizar ruta de foto");
+            throw new Exception("Error al actualizar ruta de foto en BD: " . $stmt->error);
     }
 
     // 3. Documento ID
@@ -90,13 +93,16 @@ try {
         $filename = "documento_" . $num_doc . ".pdf";
         $target = "../uploads/documentos_identidad/" . $filename;
         if (!move_uploaded_file($_FILES['id_file']['tmp_name'], $target))
-            throw new Exception("Error al mover documento ID");
+            throw new Exception("Error al mover documento ID a $target");
+
+        if (!file_exists($target))
+            throw new Exception("El documento ID no se guardó correctamente en el servidor");
 
         $db_path = "uploads/documentos_identidad/" . $filename;
         $stmt = $conn->prepare("UPDATE hoja_vida SET documento_identidad_path = ? WHERE id = ?");
         $stmt->bind_param("si", $db_path, $hoja_vida_id);
         if (!$stmt->execute())
-            throw new Exception("Error al actualizar ruta de documento");
+            throw new Exception("Error al actualizar ruta de documento en BD: " . $stmt->error);
     }
 
     // 4. Habilidades
@@ -138,7 +144,11 @@ try {
             $fname = "formacion_" . $edu_id . ".pdf";
             $target = "../uploads/certificados_academicos/" . $fname;
             if (!move_uploaded_file($_FILES["education_{$i}_file"]['tmp_name'], $target))
-                throw new Exception("Error al mover certificado formación $i");
+                throw new Exception("Error al mover certificado formación $i a $target");
+
+            if (!file_exists($target))
+                throw new Exception("El certificado de formación $i no se guardó correctamente");
+
             $db_p = "uploads/certificados_academicos/" . $fname;
             $stmt = $conn->prepare("UPDATE hoja_vida_formacion SET soporte_path = ? WHERE id = ?");
             $stmt->bind_param("si", $db_p, $edu_id);
@@ -167,7 +177,11 @@ try {
             $fname = "experiencia_" . $exp_id . ".pdf";
             $target = "../uploads/certificados_laborales/" . $fname;
             if (!move_uploaded_file($_FILES["experience_{$j}_file"]['tmp_name'], $target))
-                throw new Exception("Error al mover certificado laboral $j");
+                throw new Exception("Error al mover certificado laboral $j a $target");
+
+            if (!file_exists($target))
+                throw new Exception("El certificado laboral $j no se guardó correctamente");
+
             $db_p = "uploads/certificados_laborales/" . $fname;
             $stmt = $conn->prepare("UPDATE hoja_vida_experiencia SET soporte_path = ? WHERE id = ?");
             $stmt->bind_param("si", $db_p, $exp_id);
@@ -196,7 +210,21 @@ try {
     }
 
     $conn->commit();
-    echo json_encode(['success' => true, 'message' => '¡Hoja de vida guardada exitosamente!', 'hoja_vida_id' => $hoja_vida_id]);
+
+    // Verification Step: Read back some data to ensure it's there
+    $verify_stmt = $conn->prepare("SELECT id FROM hoja_vida WHERE id = ?");
+    $verify_stmt->bind_param("i", $hoja_vida_id);
+    $verify_stmt->execute();
+    if (!$verify_stmt->get_result()->fetch_assoc()) {
+        throw new Exception("Error crítico: No se pudo verificar la existencia de la hoja de vida después de guardar");
+    }
+
+    echo json_encode([
+        'success' => true,
+        'message' => '¡Hoja de vida guardada exitosamente!',
+        'hoja_vida_id' => $hoja_vida_id,
+        'draft_url' => 'api/download_draft.php?hoja_vida_id=' . $hoja_vida_id
+    ]);
 
 } catch (Exception $e) {
     if ($conn)
