@@ -398,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('family_references_json', JSON.stringify([f1, f2]));
 
             try {
-                const response = await fetch('/api/submit_resume', {
+                const response = await fetch('api/submit_resume.php', {
                     method: 'POST',
                     body: formData
                 });
@@ -407,9 +407,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     alert('¡Hoja de vida completa registrada con éxito!');
                     if (result.resume_id) {
-                        window.location.href = `/resume/${result.resume_id}/preview`;
+                        window.location.href = `resume_preview.php?resume_id=${result.resume_id}`;
                     } else {
-                        window.location.href = '/dashboard';
+                        window.location.href = 'dashboard.php';
                     }
                     resumeForm.reset();
                     // Clear dynamic lists
@@ -436,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
         listContainer.innerHTML = '<p>Cargando...</p>';
 
         try {
-            const response = await fetch('/api/resumes');
+            const response = await fetch('api/get_resumes.php');
             const data = await response.json();
 
             listContainer.innerHTML = '';
@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <td style="padding:10px;">${resume.skills}</td>
                             <td style="padding:10px;">${resume.phone}</td>
                             <td style="padding:10px;">
-                                <a href="/api/download_resume/${resume.id}" class="btn-secondary" style="text-decoration:none; padding:5px 10px; font-size:0.8rem;">
+                                <a href="api/download_resume.php?resume_id=${resume.id}" class="btn-secondary" style="text-decoration:none; padding:5px 10px; font-size:0.8rem;">
                                     Descargar ZIP
                                 </a>
                             </td>
