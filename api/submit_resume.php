@@ -63,6 +63,7 @@ try {
     $city = $_POST['city'] ?? '';
     $phone = $_POST['phone'] ?? '';
     $email = $_POST['email'] ?? '';
+    $profesion = $_POST['profesion'] ?? $_POST['niche'] ?? '';
     $perfil = $_POST['profile_description'] ?? '';
 
     // 1. Base Resume Record
@@ -85,10 +86,11 @@ try {
             municipio_residencia = ?, 
             telefono = ?, 
             email = ?, 
+            profesion = ?,
             perfil_profesional = ? 
             WHERE id = ?");
         $stmt->bind_param(
-            "sssssssssssi",
+            "ssssssssssssi",
             $nombre_completo,
             $id_type,
             $doc_id,
@@ -99,6 +101,7 @@ try {
             $city,
             $phone,
             $email,
+            $profesion,
             $perfil,
             $hoja_vida_id
         );
@@ -113,10 +116,11 @@ try {
         $stmt = $conn->prepare("INSERT INTO hoja_vida (
             usuario_id, nombre_completo, tipo_documento, numero_documento, 
             fecha_nacimiento, departamento_nacimiento, municipio_nacimiento, 
-            departamento_residencia, municipio_residencia, telefono, email, perfil_profesional
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            departamento_residencia, municipio_residencia, telefono, email, 
+            profesion, perfil_profesional
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->bind_param(
-            "isssssssssss",
+            "issssssssssss",
             $user_id,
             $nombre_completo,
             $id_type,
@@ -128,6 +132,7 @@ try {
             $city,
             $phone,
             $email,
+            $profesion,
             $perfil
         );
 
