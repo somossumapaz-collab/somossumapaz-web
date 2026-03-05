@@ -126,366 +126,281 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Comprehensive Form Logic
+    // --- Professional Resume System Logic ---
+    const resumeForm = document.getElementById('resume-form');
+    let currentSection = 'personal';
 
-    // Data definition
-    const departments = {
-        "Bogotá D.C.": ["Bogotá D.C."],
-        "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado"],
-        "Cundinamarca": ["Soacha", "Zipaquirá", "Facatativá", "Chía"],
-        "Valle del Cauca": ["Cali", "Palmira", "Buenaventura"]
-        // Add more as needed or load from JSON
-    };
+    if (resumeForm) {
+        const navSteps = document.querySelectorAll('.nav-step');
+        const sections = document.querySelectorAll('.form-section-content');
+        const hvId = resumeForm.getAttribute('data-hv-id');
 
-    const niches = {
-        "Agricultura": ["Cultivos", "Riego", "Cosecha", "Manejo de Plagas"],
-        "Construcción": ["Albañilería", "Pintura", "Electricidad", "Plomería"],
-        "Ventas": ["Atención al Cliente", "Caja", "Inventarios", "Negociación"],
-        "Administración": ["Archivo", "Digitación", "Contabilidad Básica", "Recepción"],
-        "Tecnología": ["Soporte Técnico", "Redes", "Programación", "Diseño Gráfico"]
-    };
+        // 1. Navigation Logic
+        function showSection(sectionId) {
+            sections.forEach(s => s.classList.remove('active'));
+            navSteps.forEach(n => n.classList.remove('active'));
 
-    // 1. Geography Dropdowns
-    const deptSelects = ['birth_department', 'department'];
-    const citySelects = ['birth_city', 'city'];
+            document.getElementById(`section-${sectionId}`).classList.add('active');
+            document.querySelector(`.nav-step[data-section="${sectionId}"]`).classList.add('active');
+            currentSection = sectionId;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
 
-    deptSelects.forEach((id, index) => {
-        const select = document.getElementById(id);
-        const citySelect = document.getElementById(citySelects[index]);
-
-        if (select && citySelect) {
-            // Populate Departments
-            select.innerHTML = '<option value="">Seleccione...</option>';
-            Object.keys(departments).sort().forEach(dept => {
-                select.innerHTML += `<option value="${dept}">${dept}</option>`;
+        navSteps.forEach(step => {
+            step.addEventListener('click', () => {
+                const target = step.getAttribute('data-section');
+                saveCurrentSection().then(() => showSection(target));
             });
+        });
 
-            // Handle Change
-            select.addEventListener('change', () => {
-                const dept = select.value;
-                citySelect.innerHTML = '<option value="">Seleccione...</option>';
-
-                if (dept && departments[dept]) {
-                    departments[dept].sort().forEach(city => {
-                        citySelect.innerHTML += `<option value="${city}">${city}</option>`;
-                    });
-                    citySelect.disabled = false;
-                } else {
-                    citySelect.disabled = true;
-                    citySelect.innerHTML = '<option value="">Seleccione Departamento primero</option>';
+        document.querySelectorAll('.next-section').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const currentIndex = Array.from(navSteps).findIndex(s => s.getAttribute('data-section') === currentSection);
+                if (currentIndex < navSteps.length - 1) {
+                    const next = navSteps[currentIndex + 1].getAttribute('data-section');
+                    saveCurrentSection().then(() => showSection(next));
                 }
             });
-        }
-    });
-
-    // 2. Skills Mosaic
-    const nicheSelect = document.getElementById('niche-select');
-    const skillsContainer = document.getElementById('skills-container');
-    const skillsInput = document.getElementById('skills-input');
-    let selectedSkills = new Set();
-
-    if (nicheSelect && skillsContainer) {
-        // Populate Niches
-        Object.keys(niches).sort().forEach(niche => {
-            nicheSelect.innerHTML += `<option value="${niche}">${niche}</option>`;
         });
 
-        nicheSelect.addEventListener('change', () => {
-            const niche = nicheSelect.value;
-            selectedSkills.clear();
-            updateSkillsInput();
+        document.querySelectorAll('.prev-section').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const currentIndex = Array.from(navSteps).findIndex(s => s.getAttribute('data-section') === currentSection);
+                if (currentIndex > 0) {
+                    const prev = navSteps[currentIndex - 1].getAttribute('data-section');
+                    showSection(prev);
+                }
+            });
+        });
 
-            if (niche && niches[niche]) {
-                skillsContainer.innerHTML = '';
-                niches[niche].forEach(skill => {
-                    const div = document.createElement('div');
-                    div.className = 'skill-item';
-                    div.textContent = skill;
-                    div.onclick = () => toggleSkill(div, skill);
-                    skillsContainer.appendChild(div);
+        // 2. Auto-Save Logic
+        async function saveCurrentSection() {
+            const statusEl = document.getElementById('autoSaveStatus');
+            statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+            statusEl.className = 'auto-save-status saving';
+
+            const formData = new FormData();
+            formData.append('section', currentSection);
+            formData.append('hoja_vida_id', resumeForm.getAttribute('data-hv-id'));
+
+            // Gather data based on section
+            if (currentSection === 'personal') {
+                formData.append('full_name', resumeForm.full_name.value);
+                formData.append('email', resumeForm.email.value);
+                formData.append('id_type', resumeForm.id_type.value);
+                formData.append('document_id', resumeForm.document_id.value);
+                formData.append('phone', resumeForm.phone.value);
+                formData.append('niche', resumeForm.niche.value);
+                formData.append('profile_description', resumeForm.profile_description.value);
+            } else if (currentSection === 'skills') {
+                formData.append('skills', resumeForm.skills.value);
+            } else if (['education', 'experience', 'references'].includes(currentSection)) {
+                const items = [];
+                const itemEls = document.querySelectorAll(`.${currentSection}-item`);
+                itemEls.forEach(el => {
+                    const item = {};
+                    if (currentSection === 'education') {
+                        item.institution = el.querySelector('.item-institution').value;
+                        item.level = el.querySelector('.item-level').value;
+                        item.start_date = el.querySelector('.item-start').value;
+                        item.end_date = el.querySelector('.item-end').value;
+                        item.is_current = el.querySelector('.item-current').checked ? 1 : 0;
+                        item.file_path = el.querySelector('.item-file-path').value;
+                    } else if (currentSection === 'experience') {
+                        item.company = el.querySelector('.item-company').value;
+                        item.role = el.querySelector('.item-role').value;
+                        item.start_date = el.querySelector('.item-start').value;
+                        item.end_date = el.querySelector('.item-end').value;
+                        item.is_current = el.querySelector('.item-current').checked ? 1 : 0;
+                        item.file_path = el.querySelector('.item-file-path').value;
+                    } else if (currentSection === 'references') {
+                        item.name = el.querySelector('.item-name').value;
+                        item.phone = el.querySelector('.item-phone').value;
+                        item.type = el.querySelector('.item-type').value;
+                        item.occupation = el.querySelector('.item-occupation').value;
+                        item.relation = el.querySelector('.item-occupation').value; // Unified field
+                    }
+                    items.push(item);
                 });
-            } else {
-                skillsContainer.innerHTML = '<p style="color:#666; font-style:italic;">Seleccione un nicho para ver habilidades sugeridas.</p>';
+                formData.append('items', JSON.stringify(items));
             }
-        });
-    }
-
-    function toggleSkill(element, skill) {
-        if (selectedSkills.has(skill)) {
-            selectedSkills.delete(skill);
-            element.classList.remove('selected');
-        } else {
-            selectedSkills.add(skill);
-            element.classList.add('selected');
-        }
-        updateSkillsInput();
-    }
-
-    function updateSkillsInput() {
-        if (skillsInput) {
-            skillsInput.value = Array.from(selectedSkills).join(', ');
-        }
-    }
-
-    // 3. Dynamic Rows (Education & Experience)
-    function createRow(type, index) {
-        const div = document.createElement('div');
-        div.className = 'dynamic-item';
-        div.id = `${type}-${index}`;
-
-        let content = '';
-        if (type === 'education') {
-            content = `
-                <h4>Estudio ${index + 1}</h4>
-                <div class="grid-2">
-                    <div class="input-group">
-                        <label>Nivel Educativo</label>
-                        <select name="education_${index}_level" required>
-                            <option value="Bachiller">Bachiller</option>
-                            <option value="Técnico">Técnico</option>
-                            <option value="Tecnólogo">Tecnólogo</option>
-                            <option value="Profesional">Profesional</option>
-                            <option value="Postgrado">Postgrado</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>Institución</label>
-                        <input type="text" name="education_${index}_institution" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Fecha Inicio</label>
-                        <input type="date" name="education_${index}_start_date" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Fecha Fin</label>
-                        <input type="date" name="education_${index}_end_date" id="edu_end_${index}" required>
-                         <label style="display:inline-flex; align-items:center; margin-top:5px; font-weight:normal;">
-                            <input type="checkbox" name="education_${index}_is_current" onchange="toggleEndDate('edu_end_${index}', this)"> 
-                            En curso (Cargar certificado de estudios)
-                        </label>
-                    </div>
-                    <div class="input-group full-width">
-                        <label>Cargar Soporte (Diploma o Certificado)</label>
-                        <input type="file" name="education_${index}_file" accept=".pdf,.jpg,.png" required>
-                    </div>
-                </div>
-                <button type="button" class="btn-remove" onclick="removeRow(this)">Eliminar</button>
-            `;
-        } else if (type === 'experience') {
-            content = `
-                <h4>Experiencia ${index + 1}</h4>
-                <div class="grid-2">
-                    <div class="input-group">
-                        <label>Cargo / Rol</label>
-                        <input type="text" name="experience_${index}_role" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Empresa</label>
-                        <input type="text" name="experience_${index}_company" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Fecha Inicio</label>
-                        <input type="date" name="experience_${index}_start_date" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Fecha Fin</label>
-                        <input type="date" name="experience_${index}_end_date" id="exp_end_${index}" required>
-                         <label style="display:inline-flex; align-items:center; margin-top:5px; font-weight:normal;">
-                            <input type="checkbox" name="experience_${index}_is_current" onchange="toggleEndDate('exp_end_${index}', this)"> 
-                            Actualmente (No requiere certificado laboral)
-                        </label>
-                    </div>
-                    <div class="input-group full-width" id="exp_cert_${index}_container">
-                        <label>Cargar Certificación Laboral</label>
-                        <input type="file" name="experience_${index}_file" accept=".pdf,.jpg,.png" required>
-                    </div>
-                </div>
-                <button type="button" class="btn-remove" onclick="removeRow(this)">Eliminar</button>
-            `;
-        }
-
-        div.innerHTML = content;
-        return div;
-    }
-
-    // Global toggle function
-    window.toggleEndDate = function (inputId, checkbox) {
-        const input = document.getElementById(inputId);
-        if (input) {
-            input.disabled = checkbox.checked;
-            input.required = !checkbox.checked;
-            if (checkbox.checked) input.value = '';
-        }
-
-        // Specific logic for Experience Certificate
-        if (inputId.startsWith('exp_end_')) {
-            const index = inputId.split('_')[2];
-            const certContainer = document.getElementById(`exp_cert_${index}_container`);
-            const certInput = certContainer.querySelector('input');
-
-            if (checkbox.checked) {
-                // If current, cert NOT required
-                certContainer.style.display = 'none';
-                certInput.required = false;
-            } else {
-                // If finished, cert REQUIRED
-                certContainer.style.display = 'block';
-                certInput.required = true;
-            }
-        }
-    };
-
-    window.removeRow = function (btn) {
-        btn.parentElement.remove();
-    };
-
-    const addEduBtn = document.getElementById('add-education');
-    const eduList = document.getElementById('education-list');
-    let eduCount = 0;
-
-    if (addEduBtn && eduList) {
-        addEduBtn.addEventListener('click', () => {
-            eduList.appendChild(createRow('education', eduCount++));
-        });
-        // Add one initial row
-        // eduList.appendChild(createRow('education', eduCount++)); 
-    }
-
-    const addExpBtn = document.getElementById('add-experience');
-    const expList = document.getElementById('experience-list');
-    let expCount = 0;
-
-    if (addExpBtn && expList) {
-        addExpBtn.addEventListener('click', () => {
-            if (expCount < 5) {
-                expList.appendChild(createRow('experience', expCount++));
-            } else {
-                alert('Máximo 5 experiencias permitidas.');
-            }
-        });
-    }
-
-    // Form Submission (Updated)
-    const resumeForm = document.getElementById('resume-form');
-    if (resumeForm) {
-        resumeForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            // Collect References as JSON
-            const p1 = {
-                name: resumeForm.ref_p1_name.value,
-                phone: resumeForm.ref_p1_phone.value,
-                occupation: resumeForm.ref_p1_occupation.value
-            };
-            const p2 = {
-                name: resumeForm.ref_p2_name.value,
-                phone: resumeForm.ref_p2_phone.value,
-                occupation: resumeForm.ref_p2_occupation.value
-            };
-            const f1 = {
-                name: resumeForm.ref_f1_name.value,
-                phone: resumeForm.ref_f1_phone.value,
-                relation: resumeForm.ref_f1_relation.value
-            };
-            const f2 = {
-                name: resumeForm.ref_f2_name.value,
-                phone: resumeForm.ref_f2_phone.value,
-                relation: resumeForm.ref_f2_relation.value
-            };
-
-            const formData = new FormData(resumeForm);
-            // formData already contains all fields including ref_p1_name, etc.
-            // We can remove the redundant JSON strings if we want, or just leave them.
-            // The PHP script now handles the individual fields.
 
             try {
-                const response = await fetch(resumeForm.action || 'api/submit_resume.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    let logMessage = '';
-                    if (data.log && Array.isArray(data.log)) {
-                        logMessage = '\n\nDetalle de comunicación:\n' + data.log.join('\n');
-                    }
-
-                    const downloadDraft = confirm('¡Hoja de vida guardada correctamente!' + logMessage + '\n\n¿Desea descargar un borrador de su hoja de vida ahora?');
-
-                    if (downloadDraft && data.draft_url) {
-                        window.open(data.draft_url, '_blank');
-                    }
-
-                    if (data.hoja_vida_id) {
-                        window.location.href = `resume_preview.php?resume_id=${data.hoja_vida_id}`;
-                    } else {
-                        window.location.href = 'user_panel.php';
-                    }
-                    resumeForm.reset();
-                    // Clear dynamic lists
-                    eduList.innerHTML = '';
-                    expList.innerHTML = '';
-                    eduCount = 0;
-                    expCount = 0;
-                    if (skillsContainer) skillsContainer.innerHTML = '';
-                    if (skillsInput) skillsInput.value = '';
-                    selectedSkills.clear();
+                const res = await fetch('api/save_section.php', { method: 'POST', body: formData });
+                const result = await res.json();
+                if (result.success) {
+                    statusEl.innerHTML = '<i class="fas fa-check-circle"></i> Guardado';
+                    statusEl.className = 'auto-save-status saved';
+                    if (result.hoja_vida_id) resumeForm.setAttribute('data-hv-id', result.hoja_vida_id);
+                    document.querySelector(`.nav-step[data-section="${currentSection}"]`).classList.add('completed');
                 } else {
-                    const errorMsg = data.detalle ? `${data.error}: ${data.detalle}` : (data.error || 'Ocurrió un error desconocido');
-                    alert('Error: ' + errorMsg);
+                    statusEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error al guardar';
+                    statusEl.className = 'auto-save-status error';
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Hubo un error al procesar la respuesta del servidor.');
+            } catch (e) {
+                statusEl.innerHTML = '<i class="fas fa-wifi"></i> Error de red';
             }
+        }
+
+        // 3. Dynamic Items (Education, Experience, References)
+        function addItem(type, data = null) {
+            const container = document.getElementById(`${type}-items`);
+            const template = document.getElementById(`${type}-tpl`);
+            const clone = template.content.cloneNode(true);
+            const itemDiv = clone.querySelector('.dynamic-item');
+
+            if (data) {
+                if (type === 'education') {
+                    itemDiv.querySelector('.item-institution').value = data.institucion || '';
+                    itemDiv.querySelector('.item-level').value = data.nivel_educativo || '';
+                    itemDiv.querySelector('.item-start').value = data.fecha_inicio || '';
+                    itemDiv.querySelector('.item-end').value = data.fecha_fin || '';
+                    itemDiv.querySelector('.item-current').checked = data.en_curso == 1;
+                    itemDiv.querySelector('.item-file-path').value = data.soporte_path || '';
+                    if (data.soporte_path) itemDiv.querySelector('.file-status').innerHTML = '<small style="color:green">Archivo cargado</small>';
+                } else if (type === 'experience') {
+                    itemDiv.querySelector('.item-company').value = data.empresa || '';
+                    itemDiv.querySelector('.item-role').value = data.cargo || '';
+                    itemDiv.querySelector('.item-start').value = data.fecha_inicio || '';
+                    itemDiv.querySelector('.item-end').value = data.fecha_fin || '';
+                    itemDiv.querySelector('.item-current').checked = data.actualmente == 1;
+                    itemDiv.querySelector('.item-file-path').value = data.soporte_path || '';
+                    if (data.soporte_path) itemDiv.querySelector('.file-status').innerHTML = '<small style="color:green">Archivo cargado</small>';
+                } else if (type === 'references') {
+                    itemDiv.querySelector('.item-name').value = data.nombre || '';
+                    itemDiv.querySelector('.item-phone').value = data.telefono || '';
+                    itemDiv.querySelector('.item-type').value = data.tipo || 'Personal';
+                    itemDiv.querySelector('.item-occupation').value = data.ocupacion || data.parentesco || '';
+                }
+            }
+
+            itemDiv.querySelector('.btn-remove').addEventListener('click', () => {
+                if (confirm('¿Eliminar este elemento?')) {
+                    itemDiv.remove();
+                    saveCurrentSection();
+                }
+            });
+
+            // File upload listener for dynamic items
+            const fileInput = itemDiv.querySelector('.item-file');
+            if (fileInput) {
+                fileInput.addEventListener('change', async () => {
+                    const status = itemDiv.querySelector('.file-status');
+                    status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Subiendo...';
+
+                    const fd = new FormData();
+                    fd.append('file', fileInput.files[0]);
+                    fd.append('type', type === 'education' ? 'edu_cert' : 'exp_cert');
+                    fd.append('hoja_vida_id', resumeForm.getAttribute('data-hv-id'));
+
+                    try {
+                        const r = await fetch('api/upload_file.php', { method: 'POST', body: fd });
+                        const res = await r.json();
+                        if (res.success) {
+                            itemDiv.querySelector('.item-file-path').value = res.path;
+                            status.innerHTML = '<small style="color:green">✓ Subido</small>';
+                            saveCurrentSection();
+                        } else {
+                            status.innerHTML = '<small style="color:red">Error</small>';
+                            alert(res.error);
+                        }
+                    } catch (e) { status.innerHTML = 'Error'; }
+                });
+            }
+
+            container.appendChild(itemDiv);
+        }
+
+        document.getElementById('add-education').addEventListener('click', () => addItem('education'));
+        document.getElementById('add-experience').addEventListener('click', () => addItem('experience'));
+        document.getElementById('add-reference').addEventListener('click', () => addItem('references'));
+
+        // 4. File Upload (Photo & ID)
+        document.getElementById('photo-upload').addEventListener('change', async (e) => {
+            const fd = new FormData();
+            fd.append('file', e.target.files[0]);
+            fd.append('type', 'photo');
+            fd.append('hoja_vida_id', resumeForm.getAttribute('data-hv-id'));
+
+            try {
+                const r = await fetch('api/upload_file.php', { method: 'POST', body: fd });
+                const res = await r.json();
+                if (res.success) {
+                    document.getElementById('profile-preview').src = res.path;
+                    saveCurrentSection();
+                } else alert(res.error);
+            } catch (e) { alert('Error al subir foto'); }
+        });
+
+        // 5. Initial Data Load
+        if (window.INITIAL_RESUME_DATA) {
+            const d = window.INITIAL_RESUME_DATA;
+            if (d.education) d.education.forEach(item => addItem('education', item));
+            if (d.experiencia) d.experiencia.forEach(item => addItem('experience', item));
+            if (d.referencias) d.referencias.forEach(item => addItem('references', item));
+        }
+
+        // 6. Final Save
+        document.getElementById('final-save').addEventListener('click', async () => {
+            await saveCurrentSection();
+            const id = resumeForm.getAttribute('data-hv-id');
+            alert('¡Hoja de vida finalizada con éxito!');
+            window.location.href = `api/download_resume_pdf.php?user_id=${window.INITIAL_RESUME_DATA.usuario_id || ''}`;
         });
     }
 
-    // Load Resumes
+    // --- Admin Dashboard Logic ---
     async function loadResumes() {
         const tableBody = document.getElementById('resumeTableBody');
         if (!tableBody) return;
 
-        tableBody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center;">Cargando...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Cargando Dashboard...</td></tr>';
 
         try {
-            const response = await fetch('api/get_resumes.php');
-            const data = await response.json();
+            const response = await fetch('api/get_resumes_dashboard.php');
+            const result = await response.json();
 
-            tableBody.innerHTML = '';
-            if (data.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center;">No hay registros encontrados.</td></tr>';
-                return;
+            if (result.success) {
+                tableBody.innerHTML = '';
+                if (result.data.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay postulantes aún.</td></tr>';
+                    return;
+                }
+
+                result.data.forEach(resume => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${resume.nombre_completo || (resume.nombre + ' ' + resume.apellido)}</strong></td>
+                        <td>${resume.profesion || 'N/A'}</td>
+                        <td>
+                            <div style="font-size:0.85rem">
+                                <i class="fas fa-phone"></i> ${resume.telefono}<br>
+                                <i class="fas fa-envelope"></i> ${resume.email}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display:flex; gap:5px;">
+                                <a href="api/download_resume_pdf.php?user_id=${resume.usuario_id}" target="_blank" class="btn-action btn-view">
+                                    <i class="fas fa-eye"></i> Ver
+                                </a>
+                                <a href="api/download_resume_pdf.php?user_id=${resume.usuario_id}" target="_blank" class="btn-action btn-download">
+                                    <i class="fas fa-file-pdf"></i> PDF
+                                </a>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                tableBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">${result.error}</td></tr>`;
             }
-
-            data.forEach(resume => {
-                const row = document.createElement('tr');
-                row.style.borderBottom = '1px solid #eee';
-                row.innerHTML = `
-                    <td style="padding:15px;">
-                        <strong>${resume.full_name}</strong><br>
-                        <small style="color:#777;">${resume.email}</small>
-                    </td>
-                    <td style="padding:15px;">${resume.niche || 'N/A'}</td>
-                    <td style="padding:15px;">${resume.phone}</td>
-                    <td style="padding:15px;">
-                        <div style="display:flex; gap:10px;">
-                            <a href="resume_preview.php?resume_id=${resume.id}" class="btn-login" style="text-decoration:none; padding:5px 12px; font-size:0.8rem; border:1px solid var(--primary-color); border-radius:15px; color:var(--primary-color);">
-                                <i class="fas fa-eye"></i> Ver
-                            </a>
-                            <a href="api/download_resume.php?resume_id=${resume.id}" class="btn-secondary" style="text-decoration:none; padding:5px 12px; font-size:0.8rem; background:#8d6e63; color:#fff; border-radius:15px;">
-                                <i class="fas fa-download"></i> ZIP
-                            </a>
-                        </div>
-                    </td>
-                `;
-                tableBody.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Error fetching resumes:', error);
-            tableBody.innerHTML = '<tr><td colspan="4" style="padding:20px; text-align:center; color:red;">Error al cargar datos.</td></tr>';
+        } catch (e) {
+            tableBody.innerHTML = '<tr><td colspan="4" style="color:red; text-align:center;">Error de conexión con el tablero.</td></tr>';
         }
+    }
+
+    // Load resumes if on dashboard
+    if (document.getElementById('resumeTableBody')) {
+        loadResumes();
     }
 });

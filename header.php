@@ -132,6 +132,7 @@ session_start();
             <li><a href="blog.php">Noticias</a></li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <li><a href="user_panel.php">Panel de Usuario</a></li>
+                <li><a href="dashboard.php" style="color:var(--secondary-color); font-weight:bold;">Tablero</a></li>
             <?php endif; ?>
         </ul>
         <div class="nav-auth">

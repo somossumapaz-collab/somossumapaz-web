@@ -259,40 +259,16 @@ function get_all_resumes()
     if (!$conn)
         return [];
 
-    $sql = "SELECT hv.*, u.email as user_email
+    $sql = "SELECT hv.*, u.nombre, u.apellido, u.email as user_email
             FROM hoja_vida hv
             JOIN usuarios u ON hv.usuario_id = u.id
-            ORDER BY hv.fecha_actualizacion DESC";
+            ORDER BY hv.id DESC";
 
     $result = $conn->query($sql);
     $resumes = [];
     while ($row = $result->fetch_assoc()) {
-        $row['niche'] = $row['nombre_completo']; // Or map to whatever frontend expects
-        $row['descripcion_perfil'] = $row['perfil_profesional'];
-        $row['documento_identidad_path'] = $row['documento_pdf_path'];
-
-        // Fetch relations for each resume to match what preview expects
-        $id = $row['id'];
-
-        $stmt = $conn->prepare("SELECT * FROM hoja_vida_formacion WHERE hoja_vida_id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $row['education'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt = $conn->prepare("SELECT * FROM hoja_vida_experiencia WHERE hoja_vida_id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $row['experience'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        $stmt = $conn->prepare("SELECT * FROM hoja_vida_referencias WHERE hoja_vida_id = ?");
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $row['referencias'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-        // Map paths for compatibility with preview
-        $row['photo_path'] = $row['foto_perfil_path'] ? str_replace('uploads/', '', $row['foto_perfil_path']) : null;
-        $row['id_file_path'] = $row['documento_pdf_path'] ? str_replace('uploads/', '', $row['documento_pdf_path']) : null;
-
+        // Map profession to niche if needed
+        $row['profesion'] = $row['perfil_profesional'] ? substr($row['perfil_profesional'], 0, 50) . '...' : 'N/A';
         $resumes[] = $row;
     }
     return $resumes;

@@ -788,3 +788,145 @@ form textarea {
         padding: 1.5rem;
     }
 }
+
+/* Resume Form Sectioned Styles */
+.form-navigation {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    gap: 10px;
+    overflow-x: auto;
+}
+
+.nav-step {
+    padding: 10px 15px;
+    background: #f0f0f0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.nav-step.active {
+    background: var(--crema-sumapaz);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.nav-step.completed {
+    border-color: #4caf50;
+}
+
+.nav-step .step-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ccc;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.nav-step.active .step-icon {
+    background: var(--primary-color);
+}
+
+.nav-step.completed .step-icon {
+    background: #4caf50;
+}
+
+.form-section-content {
+    display: none;
+    animation: fadeIn 0.4s ease-out;
+}
+
+.form-section-content.active {
+    display: block;
+}
+
+.section-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #eee;
+}
+
+.auto-save-status {
+    font-size: 0.85rem;
+    color: #888;
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.auto-save-status.saving {
+    color: var(--accent-color);
+}
+
+.auto-save-status.saved {
+    color: #4caf50;
+}
+
+/* Tablero / Dashboard Table Styles */
+.table-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th {
+    background: var(--primary-color);
+    color: white;
+    padding: 15px;
+    text-align: left;
+}
+
+.admin-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    vertical-align: middle;
+}
+
+.admin-table tr:hover {
+    background: #f9f9f9;
+}
+
+.btn-action {
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-right: 5px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-view {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-download {
+    background: var(--accent-color);
+    color: #333;
+}
