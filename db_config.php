@@ -4,7 +4,7 @@
 $host = "localhost";
 $user = "somossum_admin";
 $password = "somossumapaz2026*";
-$database = "somossum_db";
+$database = "somossum_general";
 
 $conn = new mysqli($host, $user, $password, $database);
 
