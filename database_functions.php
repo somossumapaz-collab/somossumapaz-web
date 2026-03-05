@@ -252,7 +252,7 @@ function add_reference($hoja_vida_id, $data)
 }
 
 /**
- * Obtener todas las hojas de vida con info básica del usuario.
+ * Obtener todas las hojas de vida con info básica del usuario para el Dashboard.
  */
 function get_all_resumes()
 {
@@ -260,53 +260,61 @@ function get_all_resumes()
     if (!$conn)
         return [];
 
-    $sql = "SELECT hv.*, u.nombre, u.apellido, u.email as user_email
-            FROM hoja_vida hv
-            JOIN usuarios u ON hv.usuario_id = u.id
+    // User's recommended SQL
+    $sql = "SELECT 
+                hv.id, 
+                CONCAT(u.nombre,' ',u.apellido) AS nombre, 
+                hv.profesion AS nicho_cargo, 
+                u.telefono, 
+                u.email,
+                hv.usuario_id
+            FROM hoja_vida hv 
+            JOIN usuarios u ON hv.usuario_id = u.id 
             ORDER BY hv.id DESC";
 
     $result = $conn->query($sql);
     $resumes = [];
     while ($row = $result->fetch_assoc()) {
-        // Map profession
-        $row['profesion_display'] = $row['profesion'] ?: 'N/A';
         $resumes[] = $row;
     }
     return $resumes;
 }
 
 /**
- * Obtener hoja de vida completa.
+ * Obtener hoja de vida completa por ID de Hoja de Vida.
  */
-function get_complete_resume($usuario_id)
+function get_resume_by_id($id)
 {
     $conn = get_db_connection();
     if (!$conn)
         return null;
 
-    $stmt = $conn->prepare("SELECT hv.*, u.email as user_email
+    $stmt = $conn->prepare("SELECT hv.*, u.email as user_email, u.nombre, u.apellido 
                            FROM hoja_vida hv 
                            JOIN usuarios u ON hv.usuario_id = u.id 
-                           WHERE hv.usuario_id = ?");
-    $stmt->bind_param("i", $usuario_id);
+                           WHERE hv.id = ?");
+    $stmt->bind_param("i", $id);
     $stmt->execute();
     $resume = $stmt->get_result()->fetch_assoc();
 
-    if (!$resume)
-        return null;
+    if ($resume) {
+        return load_resume_relations($resume);
+    }
+    return null;
+}
 
-    $resume['full_name'] = $resume['nombre_completo'];
-    $resume['niche'] = $resume['perfil_profesional'];
-    $resume['descripcion_perfil'] = $resume['perfil_profesional'];
-    $resume['documento_identidad_path'] = $resume['documento_pdf_path'];
+/**
+ * Helper para cargar relaciones de la hoja de vida.
+ */
+function load_resume_relations($resume)
+{
+    $conn = get_db_connection();
     $id = $resume['id'];
 
     $stmt = $conn->prepare("SELECT * FROM hoja_vida_habilidades WHERE hoja_vida_id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $resume['habilidades'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-
-    // Skills as comma separated string for preview
     $resume['skills'] = implode(', ', array_column($resume['habilidades'], 'habilidad'));
 
     $stmt = $conn->prepare("SELECT * FROM hoja_vida_formacion WHERE hoja_vida_id = ?");
@@ -325,5 +333,28 @@ function get_complete_resume($usuario_id)
     $resume['referencias'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     return $resume;
+}
+
+/**
+ * Obtener hoja de vida completa por Usuario ID.
+ */
+function get_complete_resume($usuario_id)
+{
+    $conn = get_db_connection();
+    if (!$conn)
+        return null;
+
+    $stmt = $conn->prepare("SELECT hv.*, u.email as user_email 
+                           FROM hoja_vida hv 
+                           JOIN usuarios u ON hv.usuario_id = u.id 
+                           WHERE hv.usuario_id = ?");
+    $stmt->bind_param("i", $usuario_id);
+    $stmt->execute();
+    $resume = $stmt->get_result()->fetch_assoc();
+
+    if ($resume) {
+        return load_resume_relations($resume);
+    }
+    return null;
 }
 ?>

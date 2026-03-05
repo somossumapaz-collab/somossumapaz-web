@@ -6,14 +6,19 @@ session_start();
 require_once '../database_functions.php';
 
 $user_id = $_GET['user_id'] ?? ($_SESSION['user_id'] ?? null);
+$hv_id = $_GET['id'] ?? null;
 
-if (!$user_id) {
-    echo json_encode(['success' => false, 'error' => 'Usuario no especificado']);
+if (!$hv_id && !$user_id) {
+    echo json_encode(['success' => false, 'error' => 'ID no especificado']);
     exit;
 }
 
 try {
-    $resume = get_complete_resume($user_id);
+    if ($hv_id) {
+        $resume = get_resume_by_id($hv_id);
+    } else {
+        $resume = get_complete_resume($user_id);
+    }
     if (!$resume) {
         echo json_encode(['success' => false, 'error' => 'Hoja de vida no encontrada']);
         exit;

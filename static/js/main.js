@@ -333,20 +333,21 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { alert('Error al subir foto'); }
         });
 
-        // 5. Initial Data Load
+        // 5. Initial Data Load - DISABLED per user request (Form must be empty)
+        /*
         if (window.INITIAL_RESUME_DATA) {
             const d = window.INITIAL_RESUME_DATA;
             if (d.education) d.education.forEach(item => addItem('education', item));
             if (d.experiencia) d.experiencia.forEach(item => addItem('experience', item));
             if (d.referencias) d.referencias.forEach(item => addItem('references', item));
         }
+        */
 
         // 6. Final Save
         document.getElementById('final-save').addEventListener('click', async () => {
             await saveCurrentSection();
-            const id = resumeForm.getAttribute('data-hv-id');
             alert('¡Hoja de vida finalizada con éxito!');
-            window.location.href = `api/download_resume_pdf.php?user_id=${window.INITIAL_RESUME_DATA.usuario_id || ''}`;
+            window.location.href = 'dashboard.php'; // Redirect to dashboard per user flow
         });
     }
 
@@ -363,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (result.success) {
                 tableBody.innerHTML = '';
-                if (result.data.length === 0) {
+                if (!result.data || result.data.length === 0) {
                     tableBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No hay postulantes aún.</td></tr>';
                     return;
                 }
@@ -371,8 +372,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 result.data.forEach(resume => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td><strong>${resume.nombre_completo || (resume.nombre + ' ' + resume.apellido)}</strong></td>
-                        <td>${resume.profesion_display || 'N/A'}</td>
+                        <td><strong>${resume.nombre}</strong></td>
+                        <td>${resume.nicho_cargo || 'N/A'}</td>
                         <td>
                             <div style="font-size:0.85rem">
                                 <i class="fas fa-phone"></i> ${resume.telefono}<br>
@@ -381,10 +382,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         </td>
                         <td>
                             <div style="display:flex; gap:5px;">
-                                <a href="api/download_resume_pdf.php?user_id=${resume.usuario_id}" target="_blank" class="btn-action btn-view">
+                                <a href="api/download_resume_pdf.php?id=${resume.id}" target="_blank" class="btn-action btn-view">
                                     <i class="fas fa-eye"></i> Ver
                                 </a>
-                                <a href="api/download_resume_pdf.php?user_id=${resume.usuario_id}" target="_blank" class="btn-action btn-download">
+                                <a href="api/download_resume_pdf.php?id=${resume.id}" target="_blank" class="btn-action btn-download">
                                     <i class="fas fa-file-pdf"></i> PDF
                                 </a>
                             </div>

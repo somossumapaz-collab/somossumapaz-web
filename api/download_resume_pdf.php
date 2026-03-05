@@ -5,12 +5,17 @@ session_start();
 require_once '../database_functions.php';
 
 $user_id = $_GET['user_id'] ?? ($_SESSION['user_id'] ?? null);
+$hv_id = $_GET['id'] ?? null;
 
-if (!$user_id) {
-    die("Usuario no especificado");
+if (!$hv_id && !$user_id) {
+    die("ID no especificado");
 }
 
-$resume = get_complete_resume($user_id);
+if ($hv_id) {
+    $resume = get_resume_by_id($hv_id);
+} else {
+    $resume = get_complete_resume($user_id);
+}
 if (!$resume) {
     die("Hoja de vida no encontrada");
 }
