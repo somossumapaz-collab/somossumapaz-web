@@ -37,8 +37,30 @@ if (!$conn) {
 
 try {
     $log = [];
+    $log[] = "Metadata: Recibidas " . count($_POST) . " variables POST.";
+    $log[] = "Metadata: Recibidos " . count($_FILES) . " archivos.";
+
     ensure_directories();
     $conn->begin_transaction();
+
+    // 0. Actualizar Información de Usuario
+    $full_name = $_POST['full_name'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $phone = $_POST['phone'] ?? '';
+    $id_type = $_POST['id_type'] ?? '';
+    $doc_id = $_POST['document_id'] ?? '';
+
+    // Intentar separar nombre y apellido si es posible
+    $parts = explode(' ', trim($full_name), 2);
+    $nombre = $parts[0];
+    $apellido = isset($parts[1]) ? $parts[1] : '';
+
+    $stmt_u = $conn->prepare("UPDATE usuarios SET nombre = ?, apellido = ?, email = ?, telefono = ?, documento = ?, tipo_documento = ? WHERE id = ?");
+    $stmt_u->bind_param("ssssssi", $nombre, $apellido, $email, $phone, $doc_id, $id_type, $user_id);
+    if (!$stmt_u->execute()) {
+        throw new Exception("Error al actualizar información de usuario: " . $stmt_u->error);
+    }
+    $log[] = "Comunicación BD: Actualizada información básica en tabla 'usuarios' (ID: $user_id)";
 
     // 1. Hoja de Vida Base
     $profesion = $_POST['niche'] ?? '';
@@ -79,7 +101,8 @@ try {
         if (!file_exists($target))
             throw new Exception("La foto de perfil no se guardó correctamente en el servidor");
 
-        $log[] = "Archivo: Guardada foto de perfil en '$target'";
+        $abs_target = realpath($target);
+        $log[] = "Archivo: Guardada foto de perfil en '$abs_target' (" . filesize($target) . " bytes)";
 
         $db_path = "uploads/fotos_perfil/" . $filename;
         $stmt = $conn->prepare("UPDATE hoja_vida SET foto_perfil_path = ? WHERE id = ?");
@@ -104,7 +127,8 @@ try {
         if (!file_exists($target))
             throw new Exception("El documento ID no se guardó correctamente en el servidor");
 
-        $log[] = "Archivo: Guardado documento ID en '$target'";
+        $abs_target = realpath($target);
+        $log[] = "Archivo: Guardado documento ID en '$abs_target' (" . filesize($target) . " bytes)";
 
         $db_path = "uploads/documentos_identidad/" . $filename;
         $stmt = $conn->prepare("UPDATE hoja_vida SET documento_identidad_path = ? WHERE id = ?");
