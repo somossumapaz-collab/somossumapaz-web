@@ -2,7 +2,7 @@
 // db_config.php
 
 // --- Configuration ---
-$host = "localhost";
+$host = "cpanel.somossumapaz.com";
 $user = "somossum_admin";
 $password = "somossumapaz2026*";
 $database = "somossum_general";
