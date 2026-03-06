@@ -1,15 +1,11 @@
 <?php
 // db_config.php
 
-// --- Configuración ---
 $host = "localhost";
-$user = "somossum_admin";
+$user = "somossum_somossum_admin";
 $password = "somossumapaz2026*";
-$database = "somossum_general";
+$database = "somossum_somossum_general";
 
-/**
- * Obtiene una conexión MySQLi a la base de datos
- */
 function get_db_connection()
 {
     static $conn = null;
@@ -26,7 +22,6 @@ function get_db_connection()
         die("Error de conexión: " . $conn->connect_error);
     }
 
-    // Importante para caracteres especiales (tildes, ñ, etc.)
     $conn->set_charset("utf8mb4");
 
     return $conn;
