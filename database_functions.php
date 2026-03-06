@@ -3,19 +3,16 @@
 require_once __DIR__ . '/db_config.php';
 
 /**
- * Initializes the database structure.
+ * Initializes the database structure using mysqli.
  */
 function init_db()
 {
-    $pdo = get_db_connection();
-    if (!$pdo)
+    $conn = get_db_connection();
+    if (!$conn)
         return;
 
-    $driver = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
-    $queries = [];
-
-    if ($driver == 'mysql') {
-        $queries[] = "CREATE TABLE IF NOT EXISTS usuarios (
+    $queries = [
+        "CREATE TABLE IF NOT EXISTS usuarios (
             id INT AUTO_INCREMENT PRIMARY KEY,
             usuario VARCHAR(50) UNIQUE NOT NULL,
             email VARCHAR(100) UNIQUE NOT NULL,
@@ -27,9 +24,8 @@ function init_db()
             password VARCHAR(255) NOT NULL,
             rol ENUM('admin', 'usuario') DEFAULT 'usuario',
             fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )";
-
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida (
+        )",
+        "CREATE TABLE IF NOT EXISTS hoja_vida (
             id INT AUTO_INCREMENT PRIMARY KEY,
             usuario_id INT NOT NULL,
             nombre_completo VARCHAR(255),
@@ -49,16 +45,14 @@ function init_db()
             fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-        )";
-
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida_habilidades (
+        )",
+        "CREATE TABLE IF NOT EXISTS hoja_vida_habilidades (
             id INT AUTO_INCREMENT PRIMARY KEY,
             hoja_vida_id INT NOT NULL,
             habilidad VARCHAR(100),
             FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id) ON DELETE CASCADE
-        )";
-
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida_formacion (
+        )",
+        "CREATE TABLE IF NOT EXISTS hoja_vida_formacion (
             id INT AUTO_INCREMENT PRIMARY KEY,
             hoja_vida_id INT NOT NULL,
             institucion VARCHAR(255),
@@ -68,9 +62,8 @@ function init_db()
             en_curso TINYINT(1) DEFAULT 0,
             soporte_path VARCHAR(255),
             FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id) ON DELETE CASCADE
-        )";
-
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida_experiencia (
+        )",
+        "CREATE TABLE IF NOT EXISTS hoja_vida_experiencia (
             id INT AUTO_INCREMENT PRIMARY KEY,
             hoja_vida_id INT NOT NULL,
             empresa VARCHAR(255),
@@ -81,9 +74,8 @@ function init_db()
             actualmente TINYINT(1) DEFAULT 0,
             soporte_path VARCHAR(255),
             FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id) ON DELETE CASCADE
-        )";
-
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida_referencias (
+        )",
+        "CREATE TABLE IF NOT EXISTS hoja_vida_referencias (
             id INT AUTO_INCREMENT PRIMARY KEY,
             hoja_vida_id INT NOT NULL,
             tipo ENUM('Personal', 'Familiar'),
@@ -92,124 +84,52 @@ function init_db()
             ocupacion VARCHAR(255),
             parentesco VARCHAR(100),
             FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id) ON DELETE CASCADE
-        )";
-    } else {
-        $pdo->exec("PRAGMA foreign_keys = ON");
-        $queries[] = "CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            nombre TEXT,
-            apellido TEXT,
-            telefono TEXT,
-            tipo_documento TEXT,
-            documento TEXT UNIQUE,
-            password TEXT NOT NULL,
-            rol TEXT DEFAULT 'usuario',
-            fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )";
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usuario_id INTEGER NOT NULL,
-            nombre_completo TEXT,
-            tipo_documento TEXT,
-            numero_documento TEXT,
-            fecha_nacimiento DATE,
-            departamento_nacimiento TEXT,
-            municipio_nacimiento TEXT,
-            departamento_residencia TEXT,
-            municipio_residencia TEXT,
-            telefono TEXT,
-            email TEXT,
-            perfil_profesional TEXT,
-            profesion TEXT,
-            foto_perfil_path TEXT,
-            documento_pdf_path TEXT,
-            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
-        )";
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida_habilidades (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            hoja_vida_id INTEGER NOT NULL,
-            habilidad TEXT,
-            FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id) ON DELETE CASCADE
-        )";
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida_formacion (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            hoja_vida_id INTEGER NOT NULL,
-            institucion TEXT,
-            nivel_educativo TEXT,
-            fecha_inicio DATE,
-            fecha_fin DATE,
-            en_curso INTEGER DEFAULT 0,
-            soporte_path TEXT,
-            FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id) ON DELETE CASCADE
-        )";
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida_experiencia (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            hoja_vida_id INTEGER NOT NULL,
-            empresa TEXT,
-            cargo TEXT,
-            descripcion_cargo TEXT,
-            fecha_inicio DATE,
-            fecha_fin DATE,
-            actualmente INTEGER DEFAULT 0,
-            soporte_path TEXT,
-            FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id) ON DELETE CASCADE
-        )";
-        $queries[] = "CREATE TABLE IF NOT EXISTS hoja_vida_referencias (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            hoja_vida_id INTEGER NOT NULL,
-            tipo TEXT,
-            nombre TEXT,
-            telefono TEXT,
-            ocupacion TEXT,
-            parentesco TEXT,
-            FOREIGN KEY (hoja_vida_id) REFERENCES hoja_vida(id) ON DELETE CASCADE
-        )";
-    }
+        )"
+    ];
 
     foreach ($queries as $q) {
-        $pdo->exec($q);
+        $conn->query($q);
     }
 }
 
+/**
+ * Verifies user credentials using mysqli.
+ */
 function verify_user($username, $password)
 {
     $conn = get_db_connection();
-
-    $sql = "SELECT id, usuario, password, rol FROM usuarios WHERE usuario = ?";
+    $sql = "SELECT id, usuario, password, rol FROM usuarios WHERE usuario = ? OR email = ? OR documento = ?";
     $stmt = $conn->prepare($sql);
+    if (!$stmt)
+        return false;
 
-    if (!$stmt) {
-        die("Error SQL: " . $conn->error);
-    }
-
-    $stmt->bind_param("s", $username);
+    $stmt->bind_param("sss", $username, $username, $username);
     $stmt->execute();
-
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
-    if (!$user) {
-        return false;
-    }
-
-    if (password_verify($password, $user['password'])) {
+    if ($user && password_verify($password, $user['password'])) {
         return $user;
     }
-
     return false;
 }
+
+/**
+ * Creates a new user using mysqli.
+ */
 function create_user($data)
 {
-    $pdo = get_db_connection();
+    $conn = get_db_connection();
     try {
         $sql = "INSERT INTO usuarios (usuario, email, nombre, apellido, telefono, tipo_documento, documento, password) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([
+        $stmt = $conn->prepare($sql);
+        if (!$stmt)
+            throw new Exception($conn->error);
+
+        $hashed = password_hash($data['password'], PASSWORD_DEFAULT);
+        $stmt->bind_param(
+            "ssssssss",
             $data['usuario'],
             $data['email'],
             $data['nombre'],
@@ -217,10 +137,13 @@ function create_user($data)
             $data['telefono'],
             $data['tipo_documento'],
             $data['documento'],
-            password_hash($data['password'], PASSWORD_DEFAULT)
-        ]);
-        return true;
-    } catch (PDOException $e) {
+            $hashed
+        );
+
+        if ($stmt->execute())
+            return true;
+        return $conn->error;
+    } catch (Exception $e) {
         return $e->getMessage();
     }
 }
@@ -238,17 +161,19 @@ function check_auth()
 
 function get_all_resumes()
 {
-    $pdo = get_db_connection();
-    $stmt = $pdo->query("SELECT id, nombre_completo as nombre, perfil_profesional as nicho_cargo, telefono, email FROM hoja_vida ORDER BY fecha_creacion DESC");
-    return $stmt->fetchAll();
+    $conn = get_db_connection();
+    $sql = "SELECT id, nombre_completo as nombre, perfil_profesional as nicho_cargo, telefono, email FROM hoja_vida ORDER BY fecha_creacion DESC";
+    $result = $conn->query($sql);
+    return $result->fetch_all(MYSQLI_ASSOC);
 }
 
 function get_resume_by_id($id)
 {
-    $pdo = get_db_connection();
-    $stmt = $pdo->prepare("SELECT * FROM hoja_vida WHERE id = ?");
-    $stmt->execute([$id]);
-    $resume = $stmt->fetch();
+    $conn = get_db_connection();
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $resume = $stmt->get_result()->fetch_assoc();
     if ($resume) {
         $resume = load_resume_relations($resume);
     }
@@ -257,33 +182,47 @@ function get_resume_by_id($id)
 
 function load_resume_relations($resume)
 {
-    $pdo = get_db_connection();
+    $conn = get_db_connection();
+    $hv_id = $resume['id'];
 
-    $stmt = $pdo->prepare("SELECT habilidad FROM hoja_vida_habilidades WHERE hoja_vida_id = ?");
-    $stmt->execute([$resume['id']]);
-    $resume['habilidades'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    // Habilidades
+    $stmt = $conn->prepare("SELECT habilidad FROM hoja_vida_habilidades WHERE hoja_vida_id = ?");
+    $stmt->bind_param("i", $hv_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    $resume['habilidades'] = [];
+    while ($row = $res->fetch_assoc()) {
+        $resume['habilidades'][] = $row['habilidad'];
+    }
 
-    $stmt = $pdo->prepare("SELECT * FROM hoja_vida_formacion WHERE hoja_vida_id = ?");
-    $stmt->execute([$resume['id']]);
-    $resume['formacion'] = $stmt->fetchAll();
+    // Formacion
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida_formacion WHERE hoja_vida_id = ?");
+    $stmt->bind_param("i", $hv_id);
+    $stmt->execute();
+    $resume['formacion'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    $stmt = $pdo->prepare("SELECT * FROM hoja_vida_experiencia WHERE hoja_vida_id = ?");
-    $stmt->execute([$resume['id']]);
-    $resume['experiencia'] = $stmt->fetchAll();
+    // Experiencia
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida_experiencia WHERE hoja_vida_id = ?");
+    $stmt->bind_param("i", $hv_id);
+    $stmt->execute();
+    $resume['experiencia'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
-    $stmt = $pdo->prepare("SELECT * FROM hoja_vida_referencias WHERE hoja_vida_id = ?");
-    $stmt->execute([$resume['id']]);
-    $resume['referencias'] = $stmt->fetchAll();
+    // Referencias
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida_referencias WHERE hoja_vida_id = ?");
+    $stmt->bind_param("i", $hv_id);
+    $stmt->execute();
+    $resume['referencias'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
     return $resume;
 }
 
 function get_complete_resume($usuario_id)
 {
-    $pdo = get_db_connection();
-    $stmt = $pdo->prepare("SELECT * FROM hoja_vida WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 1");
-    $stmt->execute([$usuario_id]);
-    $resume = $stmt->fetch();
+    $conn = get_db_connection();
+    $stmt = $conn->prepare("SELECT * FROM hoja_vida WHERE usuario_id = ? ORDER BY fecha_creacion DESC LIMIT 1");
+    $stmt->bind_param("i", $usuario_id);
+    $stmt->execute();
+    $resume = $stmt->get_result()->fetch_assoc();
     if ($resume) {
         $resume = load_resume_relations($resume);
     }
@@ -303,25 +242,19 @@ function ensure_directories()
 }
 
 /**
- * Saves a resume and its related data (skills, education, experience, references).
- * @param int $user_id
- * @param array $data Typically $_POST
- * @param array $files Typically $_FILES
- * @return array ['success' => bool, 'id' => int, 'error' => string]
+ * Saves a resume and its related data using mysqli.
  */
 function save_resume_data($user_id, $data, $files)
 {
-    $pdo = get_db_connection();
+    $conn = get_db_connection();
     try {
         ensure_directories();
-        if (!$pdo->inTransaction()) {
-            $pdo->beginTransaction();
-        }
+        $conn->begin_transaction();
 
         $nombre = $data['full_name'] ?? ($data['nombre_completo'] ?? '');
         $id_type = $data['id_type'] ?? ($data['tipo_documento'] ?? '');
         $doc_id = $data['document_id'] ?? ($data['numero_documento'] ?? '');
-        $birth_date = $data['birth_date'] ?? ($data['fecha_nacimiento'] ?? null);
+        $birth_date = ($data['birth_date'] ?? ($data['fecha_nacimiento'] ?? null)) ?: null;
         $birth_dept = $data['birth_department'] ?? ($data['departamento_nacimiento'] ?? '');
         $birth_city = $data['birth_city'] ?? ($data['municipio_nacimiento'] ?? '');
         $dept = $data['department'] ?? ($data['departamento_residencia'] ?? '');
@@ -330,18 +263,23 @@ function save_resume_data($user_id, $data, $files)
         $email = $data['email'] ?? ($data['email'] ?? '');
         $perfil = $data['profile_description'] ?? ($data['perfil_profesional'] ?? '');
 
-        $stmt = $pdo->prepare("INSERT INTO hoja_vida (
+        $sql = "INSERT INTO hoja_vida (
             usuario_id, nombre_completo, tipo_documento, numero_documento, 
             fecha_nacimiento, departamento_nacimiento, municipio_nacimiento, 
             departamento_residencia, municipio_residencia, telefono, email, perfil_profesional
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        $stmt->execute([
+        $stmt = $conn->prepare($sql);
+        if (!$stmt)
+            throw new Exception($conn->error);
+
+        $stmt->bind_param(
+            "isssssssssss",
             $user_id,
             $nombre,
             $id_type,
             $doc_id,
-            $birth_date ?: null,
+            $birth_date,
             $birth_dept,
             $birth_city,
             $dept,
@@ -349,9 +287,9 @@ function save_resume_data($user_id, $data, $files)
             $phone,
             $email,
             $perfil
-        ]);
-
-        $hoja_vida_id = (int) $pdo->lastInsertId();
+        );
+        $stmt->execute();
+        $hoja_vida_id = $conn->insert_id;
 
         // Foto Perfil
         if (isset($files['photo']) && $files['photo']['error'] === UPLOAD_ERR_OK) {
@@ -360,7 +298,9 @@ function save_resume_data($user_id, $data, $files)
             $target = __DIR__ . "/uploads/fotos_perfil/" . $filename;
             if (move_uploaded_file($files['photo']['tmp_name'], $target)) {
                 $db_path = "uploads/fotos_perfil/" . $filename;
-                $pdo->prepare("UPDATE hoja_vida SET foto_perfil_path = ? WHERE id = ?")->execute([$db_path, $hoja_vida_id]);
+                $stmt_upd = $conn->prepare("UPDATE hoja_vida SET foto_perfil_path = ? WHERE id = ?");
+                $stmt_upd->bind_param("si", $db_path, $hoja_vida_id);
+                $stmt_upd->execute();
             }
         }
 
@@ -370,7 +310,9 @@ function save_resume_data($user_id, $data, $files)
             $target = __DIR__ . "/uploads/documentos_identidad/" . $filename;
             if (move_uploaded_file($files['id_file']['tmp_name'], $target)) {
                 $db_path = "uploads/documentos_identidad/" . $filename;
-                $pdo->prepare("UPDATE hoja_vida SET documento_pdf_path = ? WHERE id = ?")->execute([$db_path, $hoja_vida_id]);
+                $stmt_upd = $conn->prepare("UPDATE hoja_vida SET documento_pdf_path = ? WHERE id = ?");
+                $stmt_upd->bind_param("si", $db_path, $hoja_vida_id);
+                $stmt_upd->execute();
             }
         }
 
@@ -378,11 +320,13 @@ function save_resume_data($user_id, $data, $files)
         $skills = $data['skills'] ?? '';
         if (!empty($skills)) {
             $arr = is_array($skills) ? $skills : explode(',', $skills);
-            $stmt_skill = $pdo->prepare("INSERT INTO hoja_vida_habilidades (hoja_vida_id, habilidad) VALUES (?, ?)");
+            $stmt_skill = $conn->prepare("INSERT INTO hoja_vida_habilidades (hoja_vida_id, habilidad) VALUES (?, ?)");
             foreach ($arr as $s) {
                 $val = trim($s);
-                if ($val)
-                    $stmt_skill->execute([$hoja_vida_id, $val]);
+                if ($val) {
+                    $stmt_skill->bind_param("is", $hoja_vida_id, $val);
+                    $stmt_skill->execute();
+                }
             }
         }
 
@@ -396,9 +340,10 @@ function save_resume_data($user_id, $data, $files)
             $in_course = (isset($data["education_{$i}_is_current"]) || isset($data["edu_current_{$i}"])) ? 1 : 0;
 
             if ($inst) {
-                $stmt_edu = $pdo->prepare("INSERT INTO hoja_vida_formacion (hoja_vida_id, institucion, nivel_educativo, fecha_inicio, fecha_fin, en_curso) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt_edu->execute([$hoja_vida_id, $inst, $level, $start, $end, $in_course]);
-                $edu_id = $pdo->lastInsertId();
+                $stmt_edu = $conn->prepare("INSERT INTO hoja_vida_formacion (hoja_vida_id, institucion, nivel_educativo, fecha_inicio, fecha_fin, en_curso) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt_edu->bind_param("issssi", $hoja_vida_id, $inst, $level, $start, $end, $in_course);
+                $stmt_edu->execute();
+                $edu_id = $conn->insert_id;
 
                 $file_key = isset($files["education_{$i}_file"]) ? "education_{$i}_file" : "edu_file_{$i}";
                 if (isset($files[$file_key]) && $files[$file_key]['error'] === UPLOAD_ERR_OK) {
@@ -406,7 +351,9 @@ function save_resume_data($user_id, $data, $files)
                     $target = __DIR__ . "/uploads/certificados_academicos/" . $filename;
                     if (move_uploaded_file($files[$file_key]['tmp_name'], $target)) {
                         $db_path = "uploads/certificados_academicos/" . $filename;
-                        $pdo->prepare("UPDATE hoja_vida_formacion SET soporte_path = ? WHERE id = ?")->execute([$db_path, $edu_id]);
+                        $stmt_sup = $conn->prepare("UPDATE hoja_vida_formacion SET soporte_path = ? WHERE id = ?");
+                        $stmt_sup->bind_param("si", $db_path, $edu_id);
+                        $stmt_sup->execute();
                     }
                 }
             }
@@ -424,9 +371,10 @@ function save_resume_data($user_id, $data, $files)
             $is_current = (isset($data["experience_{$j}_is_current"]) || isset($data["exp_current_{$j}"])) ? 1 : 0;
 
             if ($comp) {
-                $stmt_exp = $pdo->prepare("INSERT INTO hoja_vida_experiencia (hoja_vida_id, empresa, cargo, descripcion_cargo, fecha_inicio, fecha_fin, actualmente) VALUES (?, ?, ?, ?, ?, ?, ?)");
-                $stmt_exp->execute([$hoja_vida_id, $comp, $role, $desc, $start, $end, $is_current]);
-                $exp_id = $pdo->lastInsertId();
+                $stmt_exp = $conn->prepare("INSERT INTO hoja_vida_experiencia (hoja_vida_id, empresa, cargo, descripcion_cargo, fecha_inicio, fecha_fin, actualmente) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt_exp->bind_param("isssssi", $hoja_vida_id, $comp, $role, $desc, $start, $end, $is_current);
+                $stmt_exp->execute();
+                $exp_id = $conn->insert_id;
 
                 $file_key = isset($files["experience_{$j}_file"]) ? "experience_{$j}_file" : "exp_file_{$j}";
                 if (isset($files[$file_key]) && $files[$file_key]['error'] === UPLOAD_ERR_OK) {
@@ -434,7 +382,9 @@ function save_resume_data($user_id, $data, $files)
                     $target = __DIR__ . "/uploads/certificados_laborales/" . $filename;
                     if (move_uploaded_file($files[$file_key]['tmp_name'], $target)) {
                         $db_path = "uploads/certificados_laborales/" . $filename;
-                        $pdo->prepare("UPDATE hoja_vida_experiencia SET soporte_path = ? WHERE id = ?")->execute([$db_path, $exp_id]);
+                        $stmt_sup = $conn->prepare("UPDATE hoja_vida_experiencia SET soporte_path = ? WHERE id = ?");
+                        $stmt_sup->bind_param("si", $db_path, $exp_id);
+                        $stmt_sup->execute();
                     }
                 }
             }
@@ -448,21 +398,21 @@ function save_resume_data($user_id, $data, $files)
             ['name' => 'ref_f1_name', 'phone' => 'ref_f1_phone', 'type' => 'Familiar'],
             ['name' => 'ref_f2_name', 'phone' => 'ref_f2_phone', 'type' => 'Familiar']
         ];
-        $stmt_ref = $pdo->prepare("INSERT INTO hoja_vida_referencias (hoja_vida_id, tipo, nombre, telefono) VALUES (?, ?, ?, ?)");
+        $stmt_ref = $conn->prepare("INSERT INTO hoja_vida_referencias (hoja_vida_id, tipo, nombre, telefono) VALUES (?, ?, ?, ?)");
         foreach ($ref_fields as $rf) {
             $name = $data[$rf['name']] ?? '';
             if ($name) {
                 $phone = $data[$rf['phone']] ?? '';
                 $type = $rf['type'];
-                $stmt_ref->execute([$hoja_vida_id, $type, $name, $phone]);
+                $stmt_ref->bind_param("isss", $hoja_vida_id, $type, $name, $phone);
+                $stmt_ref->execute();
             }
         }
 
-        $pdo->commit();
+        $conn->commit();
         return ['success' => true, 'id' => (int) $hoja_vida_id];
     } catch (Exception $e) {
-        if ($pdo->inTransaction())
-            $pdo->rollBack();
+        $conn->rollback();
         return ['success' => false, 'error' => $e->getMessage()];
     }
 }
