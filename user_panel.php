@@ -7,7 +7,7 @@ check_auth();
 <div style="text-align: center; margin-bottom: 40px;">
     <h1 style="color: var(--primary-color); font-size: 2.5rem;">Talento Sumapaz – Página de Usuario</h1>
     <p style="color: #666;">Bienvenido,
-        <?php echo $_SESSION['username']; ?>. Gestiona tu talento desde aquí.
+        <?php echo $_SESSION['usuario']; ?>. Gestiona tu talento desde aquí.
     </p>
 </div>
 

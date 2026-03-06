@@ -23,7 +23,7 @@ if (!$resume) {
 // Map data
 $personal = $resume;
 $skills = $resume['habilidades'] ?? [];
-$education = $resume['education'] ?? [];
+$education = $resume['formacion'] ?? [];
 $experience = $resume['experiencia'] ?? [];
 $references = $resume['referencias'] ?? [];
 ?>
@@ -209,6 +209,15 @@ $references = $resume['referencias'] ?? [];
         <button class="btn-print" style="background:#666;" onclick="window.close()">Cerrar</button>
     </div>
 
+    <script>
+        // Auto-print when loaded
+        window.onload = function () {
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        };
+    </script>
+
     <div class="container">
         <div class="header">
             <?php if (!empty($personal['foto_perfil_path'])): ?>
@@ -221,7 +230,7 @@ $references = $resume['referencias'] ?? [];
                     <?php echo htmlspecialchars($personal['nombre_completo']); ?>
                 </h1>
                 <h2>
-                    <?php echo htmlspecialchars($personal['profesion'] ?? 'Candidato'); ?>
+                    <?php echo htmlspecialchars((string) ($personal['profesion'] ?? 'Candidato')); ?>
                 </h2>
                 <div class="contact-info">
                     <span><i class="fas fa-envelope"></i>
@@ -253,7 +262,7 @@ $references = $resume['referencias'] ?? [];
                 <div class="skills-grid">
                     <?php foreach ($skills as $s): ?>
                         <div class="skill">
-                            <?php echo htmlspecialchars($s['habilidad']); ?>
+                            <?php echo htmlspecialchars((string) ($s['habilidad'] ?? '')); ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -268,7 +277,7 @@ $references = $resume['referencias'] ?? [];
                         <div class="item">
                             <div class="item-header">
                                 <span>
-                                    <?php echo htmlspecialchars($e['nivel_educativo']); ?>
+                                    <?php echo htmlspecialchars((string) ($e['nivel_educativo'] ?? '')); ?>
                                 </span>
                                 <span>
                                     <?php echo $e['fecha_inicio']; ?> —
@@ -276,7 +285,7 @@ $references = $resume['referencias'] ?? [];
                                 </span>
                             </div>
                             <div class="item-sub">
-                                <?php echo htmlspecialchars($e['institucion']); ?>
+                                <?php echo htmlspecialchars((string) ($e['institucion'] ?? '')); ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -292,7 +301,7 @@ $references = $resume['referencias'] ?? [];
                         <div class="item">
                             <div class="item-header">
                                 <span>
-                                    <?php echo htmlspecialchars($ex['cargo']); ?>
+                                    <?php echo htmlspecialchars((string) ($ex['cargo'] ?? '')); ?>
                                 </span>
                                 <span>
                                     <?php echo $ex['fecha_inicio']; ?> —
@@ -300,7 +309,7 @@ $references = $resume['referencias'] ?? [];
                                 </span>
                             </div>
                             <div class="item-sub">
-                                <?php echo htmlspecialchars($ex['empresa']); ?>
+                                <?php echo htmlspecialchars((string) ($ex['empresa'] ?? '')); ?>
                             </div>
                             <div class="item-desc">
                                 <?php echo nl2br(htmlspecialchars($ex['descripcion_cargo'] ?? '')); ?>
@@ -318,14 +327,14 @@ $references = $resume['referencias'] ?? [];
                     <?php foreach ($references as $r): ?>
                         <div class="item">
                             <div class="item-header">
-                                <?php echo htmlspecialchars($r['nombre']); ?>
+                                <?php echo htmlspecialchars((string) ($r['nombre'] ?? '')); ?>
                             </div>
                             <div class="item-sub">
-                                <?php echo htmlspecialchars($r['tipo']); ?> —
-                                <?php echo htmlspecialchars($r['ocupacion'] ?? $r['parentesco']); ?>
+                                <?php echo htmlspecialchars((string) ($r['tipo'] ?? '')); ?> —
+                                <?php echo htmlspecialchars((string) ($r['ocupacion'] ?? $r['parentesco'] ?? '')); ?>
                             </div>
                             <div class="item-desc">Teléfono:
-                                <?php echo htmlspecialchars($r['telefono']); ?>
+                                <?php echo htmlspecialchars((string) ($r['telefono'] ?? '')); ?>
                             </div>
                         </div>
                     <?php endforeach; ?>

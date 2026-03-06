@@ -6,19 +6,16 @@ check_auth();
 ?>
 
 <div class="form-wrapper">
-
     <div class="form-container">
 
-        <a href="dashboard.php" class="back-link">← Volver al Panel</a>
+        <a href="dashboard.php" class="back-link">← Volver al Panel de Consulta</a>
 
-        <h2>Registrar Hoja de Vida</h2>
+        <form id="resume-form" method="POST" enctype="multipart/form-data" action="api/submit_resume.php">
 
-        <div id="form-error"></div>
-
-        <form id="resume-form" method="POST" enctype="multipart/form-data">
+            <h2>Registrar Hoja de Vida</h2>
 
             <!-- ========================= -->
-            <!-- INFORMACIÓN PERSONAL -->
+            <!-- 1 INFORMACION PERSONAL -->
             <!-- ========================= -->
 
             <div class="form-section">
@@ -27,14 +24,14 @@ check_auth();
 
                 <div class="grid-2">
 
-                    <div class="form-group">
+                    <div>
                         <label>Nombre completo</label>
-                        <input type="text" name="full_name" required>
+                        <input type="text" name="full_name">
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label>Tipo documento</label>
-                        <select name="id_type" required>
+                        <select name="id_type">
                             <option value="">Seleccione</option>
                             <option value="CC">Cédula</option>
                             <option value="CE">Cédula extranjería</option>
@@ -42,77 +39,91 @@ check_auth();
                         </select>
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label>Número documento</label>
-                        <input type="text" name="document_id" required>
+                        <input type="text" name="document_id">
                     </div>
 
-                    <div class="form-group">
-                        <label>Archivo documento</label>
+                    <div>
+                        <label>Documento identidad (PDF)</label>
                         <input type="file" name="id_file" accept=".pdf">
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label>Fecha nacimiento</label>
                         <input type="date" name="birth_date">
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label>País nacimiento</label>
-                        <select name="birth_country" id="birth_country"></select>
+                        <select name="birth_country" id="birth_country">
+                            <option value="">Seleccione</option>
+                            <option value="Colombia">Colombia</option>
+                            <option value="Venezuela">Venezuela</option>
+                            <option value="Otro">Otro</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label>Departamento nacimiento</label>
-                        <select name="birth_department" id="birth_department"></select>
+                        <select name="birth_department" id="birth_department">
+                            <option value="">Seleccione</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
-                        <label>Ciudad nacimiento</label>
-                        <select name="birth_city" id="birth_city"></select>
+                    <div>
+                        <label>Municipio nacimiento</label>
+                        <select name="birth_city" id="birth_city">
+                            <option value="">Seleccione</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label>Departamento residencia</label>
-                        <select name="department" id="department"></select>
+                        <select name="department" id="department">
+                            <option value="">Seleccione</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
-                        <label>Ciudad residencia</label>
-                        <select name="city" id="city"></select>
+                    <div>
+                        <label>Municipio residencia</label>
+                        <select name="city" id="city">
+                            <option value="">Seleccione</option>
+                        </select>
                     </div>
 
-                    <div class="form-group">
+                    <div>
                         <label>Teléfono</label>
                         <input type="tel" name="phone">
                     </div>
 
-                    <div class="form-group">
-                        <label>Correo</label>
+                    <div>
+                        <label>Email</label>
                         <input type="email" name="email">
                     </div>
 
-                    <div class="form-group">
-                        <label>Foto</label>
+                    <div>
+                        <label>Foto perfil</label>
                         <input type="file" name="photo" accept="image/*">
                     </div>
 
                 </div>
 
-                <div class="form-group">
-                    <label>Perfil profesional</label>
-                    <textarea name="profile_description"></textarea>
-                </div>
+                <label>Perfil profesional</label>
+                <textarea name="profile_description" rows="4"></textarea>
 
             </div>
 
+
             <!-- ========================= -->
-            <!-- HABILIDADES -->
+            <!-- 2 HABILIDADES -->
             <!-- ========================= -->
 
             <div class="form-section">
 
                 <h3>2. Habilidades</h3>
+
+                <p>Seleccione sus habilidades principales</p>
 
                 <div id="skills-mosaic" class="skills-mosaic"></div>
 
@@ -120,8 +131,9 @@ check_auth();
 
             </div>
 
+
             <!-- ========================= -->
-            <!-- EDUCACIÓN -->
+            <!-- 3 EDUCACION -->
             <!-- ========================= -->
 
             <div class="form-section">
@@ -130,23 +142,80 @@ check_auth();
 
                 <div id="education-list"></div>
 
-                <button type="button" id="add-education-btn">Agregar estudio</button>
+                <button type="button" id="add-education-btn">+ Agregar Estudio</button>
 
             </div>
 
+
             <!-- ========================= -->
-            <!-- EXPERIENCIA -->
+            <!-- 4 EXPERIENCIA -->
             <!-- ========================= -->
 
             <div class="form-section">
 
-                <h3>4. Experiencia laboral</h3>
+                <h3>4. Experiencia Laboral</h3>
 
                 <div id="experience-list"></div>
 
-                <button type="button" id="add-experience-btn">Agregar experiencia</button>
+                <button type="button" id="add-experience-btn">+ Agregar Experiencia</button>
 
             </div>
+
+
+            <!-- ========================= -->
+            <!-- 5 REFERENCIAS -->
+            <!-- ========================= -->
+
+            <div class="form-section">
+
+                <h3>5. Referencias</h3>
+
+                <div class="grid-2">
+
+                    <div>
+                        <label>Referencia personal nombre</label>
+                        <input type="text" name="ref_p1_name">
+                    </div>
+
+                    <div>
+                        <label>Teléfono</label>
+                        <input type="tel" name="ref_p1_phone">
+                    </div>
+
+                    <div>
+                        <label>Referencia personal nombre</label>
+                        <input type="text" name="ref_p2_name">
+                    </div>
+
+                    <div>
+                        <label>Teléfono</label>
+                        <input type="tel" name="ref_p2_phone">
+                    </div>
+
+                    <div>
+                        <label>Referencia familiar nombre</label>
+                        <input type="text" name="ref_f1_name">
+                    </div>
+
+                    <div>
+                        <label>Teléfono</label>
+                        <input type="tel" name="ref_f1_phone">
+                    </div>
+
+                    <div>
+                        <label>Referencia familiar nombre</label>
+                        <input type="text" name="ref_f2_name">
+                    </div>
+
+                    <div>
+                        <label>Teléfono</label>
+                        <input type="tel" name="ref_f2_phone">
+                    </div>
+
+                </div>
+
+            </div>
+
 
             <button type="submit" class="btn-submit-large">
                 Guardar Hoja de Vida
@@ -157,8 +226,9 @@ check_auth();
     </div>
 </div>
 
+
 <!-- ========================= -->
-<!-- TEMPLATES -->
+<!-- TEMPLATE EDUCACION -->
 <!-- ========================= -->
 
 <template id="education-item-tpl">
@@ -179,10 +249,10 @@ check_auth();
         <label>Institución</label>
         <input type="text" name="education_INDEX_institution">
 
-        <label>Inicio</label>
+        <label>Fecha inicio</label>
         <input type="date" name="education_INDEX_start_date">
 
-        <label>Fin</label>
+        <label>Fecha fin</label>
         <input type="date" name="education_INDEX_end_date">
 
         <label>
@@ -199,6 +269,11 @@ check_auth();
 
 </template>
 
+
+<!-- ========================= -->
+<!-- TEMPLATE EXPERIENCIA -->
+<!-- ========================= -->
+
 <template id="experience-item-tpl">
 
     <div class="dynamic-item">
@@ -212,10 +287,10 @@ check_auth();
         <label>Descripción</label>
         <textarea name="experience_INDEX_description"></textarea>
 
-        <label>Inicio</label>
+        <label>Fecha inicio</label>
         <input type="date" name="experience_INDEX_start_date">
 
-        <label>Fin</label>
+        <label>Fecha fin</label>
         <input type="date" name="experience_INDEX_end_date">
 
         <label>
@@ -223,7 +298,7 @@ check_auth();
             Actualmente aquí
         </label>
 
-        <label>Certificado</label>
+        <label>Certificado laboral</label>
         <input type="file" name="experience_INDEX_file" accept=".pdf">
 
         <button type="button" class="remove">Eliminar</button>
@@ -232,7 +307,39 @@ check_auth();
 
 </template>
 
-<link rel="stylesheet" href="main.css">
-<script src="main.js"></script>
+
+<style>
+    .skills-mosaic {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .skill-card {
+        border: 1px solid #ccc;
+        padding: 8px 12px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    .skill-card.selected {
+        background: #2e7d32;
+        color: white;
+    }
+
+    .dynamic-item {
+        border: 1px solid #eee;
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 10px;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+</style>
+
 
 <?php include 'footer.php'; ?>
