@@ -1,317 +1,238 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    /* ===================================
-       1. DEPARTAMENTOS Y MUNICIPIOS
-    =================================== */
+    const errorBox = document.getElementById("form-error");
+
+    function showError(msg) {
+
+        errorBox.style.display = "block";
+        errorBox.innerHTML = msg;
+
+    }
+
+    /* =======================
+    DEPARTAMENTOS
+    ======================= */
 
     const departments = [
-        "Amazonas", "Antioquia", "Arauca", "Atlántico", "Bolívar", "Boyacá", "Caldas",
-        "Caquetá", "Casanare", "Cauca", "Cesar", "Chocó", "Córdoba", "Cundinamarca",
-        "Guainía", "Guaviare", "Huila", "La Guajira", "Magdalena", "Meta", "Nariño",
-        "Norte de Santander", "Putumayo", "Quindío", "Risaralda",
-        "San Andrés y Providencia", "Santander", "Sucre", "Tolima",
-        "Valle del Cauca", "Vaupés", "Vichada"
+        "Amazonas", "Antioquia", "Arauca", "Atlántico", "Bolívar", "Boyacá",
+        "Caldas", "Caquetá", "Casanare", "Cauca", "Cesar", "Chocó", "Córdoba",
+        "Cundinamarca", "Guainía", "Guaviare", "Huila", "La Guajira",
+        "Magdalena", "Meta", "Nariño", "Norte de Santander", "Putumayo",
+        "Quindío", "Risaralda", "San Andrés", "Santander", "Sucre",
+        "Tolima", "Valle del Cauca", "Vaupés", "Vichada"
     ];
 
     const cities = {
-        "Cundinamarca": ["Fusagasugá", "Arbeláez", "Pandi", "San Bernardo", "Venecia", "Pasca", "Tibacuy", "Cabrera", "Bogotá"],
+        "Cundinamarca": ["Fusagasugá", "Arbeláez", "Pasca", "Tibacuy", "Bogotá"],
         "Meta": ["Villavicencio", "Acacías", "Granada"],
-        "Antioquia": ["Medellín", "Envigado", "Itagüí"],
-        "Atlántico": ["Barranquilla", "Soledad", "Puerto Colombia"],
-        "Valle del Cauca": ["Cali", "Palmira", "Buenaventura"]
+        "Antioquia": ["Medellín", "Envigado", "Itagüí"]
     };
 
-    function populateDepartments(selectId) {
-        const select = document.getElementById(selectId);
+    function populateDepartments(id) {
+
+        const select = document.getElementById(id);
+
         if (!select) return;
 
         select.innerHTML = '<option value="">Seleccione...</option>';
 
-        departments.sort().forEach(dept => {
-            const opt = document.createElement('option');
-            opt.value = dept;
-            opt.textContent = dept;
+        departments.forEach(d => {
+
+            let opt = document.createElement("option");
+
+            opt.value = d;
+            opt.textContent = d;
+
             select.appendChild(opt);
-        });
-    }
 
-    function handleDeptChange(deptSelectId, citySelectId) {
-
-        const deptSelect = document.getElementById(deptSelectId);
-        const citySelect = document.getElementById(citySelectId);
-
-        if (!deptSelect || !citySelect) return;
-
-        deptSelect.addEventListener('change', () => {
-
-            const dept = deptSelect.value;
-
-            citySelect.innerHTML = '<option value="">Seleccione Municipio...</option>';
-
-            if (cities[dept]) {
-
-                cities[dept].sort().forEach(city => {
-                    const opt = document.createElement('option');
-                    opt.value = city;
-                    opt.textContent = city;
-                    citySelect.appendChild(opt);
-                });
-
-            }
         });
 
     }
 
-    populateDepartments('birth_department');
-    populateDepartments('department');
+    function handleDeptChange(deptId, cityId) {
 
-    handleDeptChange('birth_department', 'birth_city');
-    handleDeptChange('department', 'city');
+        const dept = document.getElementById(deptId);
+        const city = document.getElementById(cityId);
 
+        if (!dept || !city) return;
 
-    /* ===================================
-       2. HABILIDADES
-    =================================== */
+        dept.addEventListener("change", () => {
 
-    const skillsList = [
-        "Albañilería", "Carpintería", "Electricidad", "Plomería", "Pintura",
-        "Soldadura", "Gestión de Proyectos", "Excel Básico", "Excel Avanzado",
-        "Liderazgo", "Atención al Cliente", "Conducción (C1/C2)",
-        "Seguridad Industrial", "Mantenimiento", "Limpieza", "Cocina",
-        "Administración", "Contabilidad"
-    ];
+            city.innerHTML = '<option value="">Seleccione...</option>';
 
-    const mosaic = document.getElementById('skills-mosaic');
-    const skillsInput = document.getElementById('skills-input');
+            const list = cities[dept.value] || [];
 
-    const selectedSkills = new Set();
+            list.forEach(c => {
 
-    if (mosaic) {
-
-        skillsList.sort().forEach(skill => {
-
-            const card = document.createElement('div');
-            card.className = 'skill-card';
-            card.textContent = skill;
-
-            card.addEventListener('click', () => {
-
-                if (selectedSkills.has(skill)) {
-                    selectedSkills.delete(skill);
-                    card.classList.remove('selected');
-                } else {
-                    selectedSkills.add(skill);
-                    card.classList.add('selected');
-                }
-
-                if (skillsInput) {
-                    skillsInput.value = Array.from(selectedSkills).join(',');
-                }
+                let opt = document.createElement("option");
+                opt.value = c;
+                opt.textContent = c;
+                city.appendChild(opt);
 
             });
 
-            mosaic.appendChild(card);
-
         });
 
     }
 
+    populateDepartments("birth_department");
+    populateDepartments("department");
 
-    /* ===================================
-       3. EDUCACION Y EXPERIENCIA DINAMICA
-    =================================== */
+    handleDeptChange("birth_department", "birth_city");
+    handleDeptChange("department", "city");
 
-    const resumeForm = document.getElementById('resume-form');
 
-    if (resumeForm) {
+    /* =======================
+    HABILIDADES
+    ======================= */
 
-        let eduCount = 0;
-        let expCount = 0;
+    const skillsList = [
+        "Agricultura", "Ganadería", "Construcción",
+        "Electricidad", "Carpintería", "Ventas",
+        "Atención al cliente", "Programación",
+        "Diseño gráfico", "Marketing", "Logística"
+    ];
 
-        const addEduBtn = document.getElementById('add-education-btn');
-        const addExpBtn = document.getElementById('add-experience-btn');
+    const mosaic = document.getElementById("skills-mosaic");
+    const skillsInput = document.getElementById("skills-input");
 
-        const eduList = document.getElementById('education-list');
-        const expList = document.getElementById('experience-list');
+    const selected = new Set();
 
-        function addItem(type) {
+    skillsList.forEach(skill => {
 
-            const index = type === "education" ? eduCount++ : expCount++;
+        let card = document.createElement("div");
 
-            const tpl = document.getElementById(`${type}-item-tpl`);
+        card.className = "skill-card";
+        card.textContent = skill;
 
-            if (!tpl) return;
+        card.onclick = () => {
 
-            const html = tpl.innerHTML.replace(/INDEX/g, index);
+            if (selected.has(skill)) {
 
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = html;
+                selected.delete(skill);
+                card.classList.remove("selected");
 
-            const item = wrapper.firstElementChild;
-
-            const removeBtn = item.querySelector('.remove');
-
-            if (removeBtn) {
-                removeBtn.addEventListener('click', () => {
-                    item.remove();
-                });
-            }
-
-            if (type === "education") {
-                eduList.appendChild(item);
             } else {
-                expList.appendChild(item);
-            }
 
-        }
-
-        if (addEduBtn) {
-            addEduBtn.addEventListener('click', () => addItem("education"));
-        }
-
-        if (addExpBtn) {
-            addExpBtn.addEventListener('click', () => addItem("experience"));
-        }
-
-
-        /* ===================================
-           4. SUBMIT FORMULARIO
-        =================================== */
-
-        resumeForm.addEventListener('submit', async (e) => {
-
-            e.preventDefault();
-
-            const debugBox = document.createElement("div");
-            debugBox.style.background = "#fff3cd";
-            debugBox.style.border = "1px solid #ffc107";
-            debugBox.style.padding = "10px";
-            debugBox.style.margin = "10px";
-            debugBox.style.fontSize = "14px";
-            debugBox.innerHTML = "<b>Debug envío formulario:</b><br>";
-            document.body.prepend(debugBox);
-
-            try {
-
-                const btn = resumeForm.querySelector('button[type="submit"]');
-
-                if (!btn) {
-                    debugBox.innerHTML += "❌ No se encontró botón submit<br>";
-                    return;
-                }
-
-                const originalText = btn.innerText;
-                btn.innerText = "Guardando...";
-                btn.disabled = true;
-
-                const formData = new FormData(resumeForm);
-
-                debugBox.innerHTML += "✔ FormData creado<br>";
-
-                for (let pair of formData.entries()) {
-                    debugBox.innerHTML += pair[0] + " = " + pair[1] + "<br>";
-                }
-
-                const response = await fetch('api/submit_resume.php', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                debugBox.innerHTML += "✔ Respuesta recibida<br>";
-
-                const text = await response.text();
-
-                debugBox.innerHTML += "<b>Respuesta servidor:</b><br>" + text;
-
-                try {
-
-                    const result = JSON.parse(text);
-
-                    if (result.success) {
-                        alert("Hoja de vida registrada");
-                        window.location.href = "dashboard.php";
-                    } else {
-                        alert("Error servidor: " + result.error);
-                    }
-
-                } catch (jsonError) {
-
-                    debugBox.innerHTML += "<br><b>⚠ Error parseando JSON:</b><br>" + jsonError;
-
-                }
-
-                btn.innerText = originalText;
-                btn.disabled = false;
-
-            } catch (error) {
-
-                console.error(error);
-
-                debugBox.innerHTML += "<br><b>❌ Error JS:</b><br>" + error;
-
-                alert("Error detectado. Revisa el recuadro amarillo arriba.");
+                selected.add(skill);
+                card.classList.add("selected");
 
             }
 
-        });
+            skillsInput.value = [...selected].join(",");
+
+        };
+
+        mosaic.appendChild(card);
+
+    });
+
+
+    /* =======================
+    EDUCACION / EXPERIENCIA
+    ======================= */
+
+    let eduCount = 0;
+    let expCount = 0;
+
+    function addItem(type) {
+
+        const index = type === "education" ? eduCount++ : expCount++;
+
+        const tpl = document.getElementById(type + "-item-tpl");
+
+        let html = tpl.innerHTML.replace(/INDEX/g, index);
+
+        let wrapper = document.createElement("div");
+        wrapper.innerHTML = html;
+
+        let item = wrapper.firstElementChild;
+
+        item.querySelector(".remove").onclick = () => item.remove();
+
+        if (type === "education") {
+
+            document.getElementById("education-list").appendChild(item);
+
+        } else {
+
+            document.getElementById("experience-list").appendChild(item);
+
+        }
 
     }
 
+    document.getElementById("add-education-btn")
+        .onclick = () => addItem("education");
 
-    /* ===================================
-       5. DASHBOARD
-    =================================== */
+    document.getElementById("add-experience-btn")
+        .onclick = () => addItem("experience");
 
-    async function loadResumes() {
 
-        const tableBody = document.getElementById('resumeTableBody');
+    /* =======================
+    SUBMIT
+    ======================= */
 
-        if (!tableBody) return;
+    const form = document.getElementById("resume-form");
 
-        tableBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+    form.addEventListener("submit", async (e) => {
+
+        e.preventDefault();
+
+        errorBox.style.display = "none";
+
+        const btn = form.querySelector("button[type=submit]");
+
+        btn.disabled = true;
+        btn.innerText = "Guardando...";
 
         try {
 
-            const response = await fetch('api/get_resumes_dashboard.php');
+            const data = new FormData(form);
 
-            const result = await response.json();
+            const response = await fetch("api/submit_resume.php", {
+                method: "POST",
+                body: data
+            });
 
-            tableBody.innerHTML = "";
+            const text = await response.text();
 
-            if (!result.data || result.data.length === 0) {
+            let json;
 
-                tableBody.innerHTML = '<tr><td colspan="4">No hay hojas de vida</td></tr>';
+            try {
+
+                json = JSON.parse(text);
+
+            } catch {
+
+                showError("Error servidor:<br>" + text);
+                btn.disabled = false;
+                btn.innerText = "Guardar Hoja de Vida";
                 return;
 
             }
 
-            result.data.forEach(resume => {
+            if (json.success) {
 
-                const row = document.createElement('tr');
+                alert("Hoja de vida registrada");
 
-                row.innerHTML = `
-                <td>${resume.nombre || ""}</td>
-                <td>${resume.nicho_cargo || ""}</td>
-                <td>${resume.telefono || ""}<br>${resume.email || ""}</td>
-                <td>
-                <a href="api/download_resume_pdf.php?id=${resume.id}" target="_blank">Ver</a>
-                </td>
-                `;
+                window.location = "dashboard.php";
 
-                tableBody.appendChild(row);
+            } else {
 
-            });
+                showError("Error: " + json.error);
 
-        } catch (e) {
+            }
 
-            tableBody.innerHTML = '<tr><td colspan="4">Error cargando datos</td></tr>';
+        } catch (err) {
+
+            showError("Error conexión: " + err);
 
         }
 
-    }
+        btn.disabled = false;
+        btn.innerText = "Guardar Hoja de Vida";
 
-    if (document.getElementById('resumeTableBody')) {
-        loadResumes();
-    }
+    });
 
 });
