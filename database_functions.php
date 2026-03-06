@@ -175,15 +175,27 @@ function init_db()
     }
 }
 
-function verify_user($identifier, $password)
+function verify_user($username, $password)
 {
-    $pdo = get_db_connection();
-    $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE usuario = ? OR email = ? OR documento = ?");
-    $stmt->execute([$identifier, $identifier, $identifier]);
-    $user = $stmt->fetch();
-    if ($user && password_verify($password, $user['password'])) {
+    $conn = get_db_connection();
+
+    $sql = "SELECT id, username, password FROM users WHERE username = ?";
+    $stmt = $conn->prepare($sql);
+
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+
+    if (!$user) {
+        return false;
+    }
+
+    if (password_verify($password, $user['password'])) {
         return $user;
     }
+
     return false;
 }
 
