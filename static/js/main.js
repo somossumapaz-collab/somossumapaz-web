@@ -182,49 +182,74 @@ document.addEventListener('DOMContentLoaded', () => {
 
             e.preventDefault();
 
-            const btn = resumeForm.querySelector('button[type="submit"]');
-
-            if (!btn) return;
-
-            const originalText = btn.innerText;
-
-            btn.innerText = "Guardando...";
-            btn.disabled = true;
-
-            const formData = new FormData(resumeForm);
+            const debugBox = document.createElement("div");
+            debugBox.style.background = "#fff3cd";
+            debugBox.style.border = "1px solid #ffc107";
+            debugBox.style.padding = "10px";
+            debugBox.style.margin = "10px";
+            debugBox.style.fontSize = "14px";
+            debugBox.innerHTML = "<b>Debug envío formulario:</b><br>";
+            document.body.prepend(debugBox);
 
             try {
+
+                const btn = resumeForm.querySelector('button[type="submit"]');
+
+                if (!btn) {
+                    debugBox.innerHTML += "❌ No se encontró botón submit<br>";
+                    return;
+                }
+
+                const originalText = btn.innerText;
+                btn.innerText = "Guardando...";
+                btn.disabled = true;
+
+                const formData = new FormData(resumeForm);
+
+                debugBox.innerHTML += "✔ FormData creado<br>";
+
+                for (let pair of formData.entries()) {
+                    debugBox.innerHTML += pair[0] + " = " + pair[1] + "<br>";
+                }
 
                 const response = await fetch('api/submit_resume.php', {
                     method: 'POST',
                     body: formData
                 });
 
-                const result = await response.json();
+                debugBox.innerHTML += "✔ Respuesta recibida<br>";
 
-                if (result.success) {
+                const text = await response.text();
 
-                    alert('Hoja de vida registrada correctamente');
+                debugBox.innerHTML += "<b>Respuesta servidor:</b><br>" + text;
 
-                    window.location.href = 'dashboard.php';
+                try {
 
-                } else {
+                    const result = JSON.parse(text);
 
-                    alert(result.error || "Error guardando hoja de vida");
+                    if (result.success) {
+                        alert("Hoja de vida registrada");
+                        window.location.href = "dashboard.php";
+                    } else {
+                        alert("Error servidor: " + result.error);
+                    }
 
-                    btn.innerText = originalText;
-                    btn.disabled = false;
+                } catch (jsonError) {
+
+                    debugBox.innerHTML += "<br><b>⚠ Error parseando JSON:</b><br>" + jsonError;
 
                 }
+
+                btn.innerText = originalText;
+                btn.disabled = false;
 
             } catch (error) {
 
                 console.error(error);
 
-                alert("Error de conexión con el servidor");
+                debugBox.innerHTML += "<br><b>❌ Error JS:</b><br>" + error;
 
-                btn.innerText = originalText;
-                btn.disabled = false;
+                alert("Error detectado. Revisa el recuadro amarillo arriba.");
 
             }
 
