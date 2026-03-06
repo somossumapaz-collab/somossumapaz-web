@@ -8,34 +8,27 @@ $password = "somossumapaz2026*";
 $database = "somossum_general";
 
 /**
- * Obtiene una conexión PDO a la base de datos
+ * Obtiene una conexión MySQLi a la base de datos
  */
 function get_db_connection()
 {
-    static $pdo = null;
+    static $conn = null;
 
-    if ($pdo !== null) {
-        return $pdo;
+    if ($conn !== null) {
+        return $conn;
     }
 
     global $host, $user, $password, $database;
 
-    try {
+    $conn = new mysqli($host, $user, $password, $database);
 
-        $dsn = "mysql:host=$host;port=3306;dbname=$database;charset=utf8mb4";
-
-        $pdo = new PDO($dsn, $user, $password, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // mostrar errores
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, // fetch asociativo
-            PDO::ATTR_EMULATE_PREPARES => false // prepared statements reales
-        ]);
-
-        return $pdo;
-
-    } catch (PDOException $e) {
-
-        die("Error de conexión: " . $e->getMessage());
-
+    if ($conn->connect_error) {
+        die("Error de conexión: " . $conn->connect_error);
     }
+
+    // Importante para caracteres especiales (tildes, ñ, etc.)
+    $conn->set_charset("utf8mb4");
+
+    return $conn;
 }
 ?>
