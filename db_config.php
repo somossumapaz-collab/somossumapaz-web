@@ -1,10 +1,9 @@
 <?php
-// db_config.php
 
 $host = "localhost";
-$user = "somossum_somossum_admin";
+$user = "somossum_admin";
 $password = "somossumapaz2026*";
-$database = "somossum_somossum_general";
+$database = "somossum_general";
 
 function get_db_connection()
 {
@@ -26,4 +25,3 @@ function get_db_connection()
 
     return $conn;
 }
-?>
