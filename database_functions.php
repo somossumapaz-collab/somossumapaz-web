@@ -179,8 +179,12 @@ function verify_user($username, $password)
 {
     $conn = get_db_connection();
 
-    $sql = "SELECT id, username, password FROM users WHERE username = ?";
+    $sql = "SELECT id, usuario, password FROM usuarios WHERE usuario = ?";
     $stmt = $conn->prepare($sql);
+
+    if (!$stmt) {
+        die("Error SQL: " . $conn->error);
+    }
 
     $stmt->bind_param("s", $username);
     $stmt->execute();
