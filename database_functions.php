@@ -179,7 +179,7 @@ function verify_user($username, $password)
 {
     $conn = get_db_connection();
 
-    $sql = "SELECT id, usuario, password FROM usuarios WHERE usuario = ?";
+    $sql = "SELECT id, usuario, password, rol FROM usuarios WHERE usuario = ?";
     $stmt = $conn->prepare($sql);
 
     if (!$stmt) {
@@ -202,7 +202,6 @@ function verify_user($username, $password)
 
     return false;
 }
-
 function create_user($data)
 {
     $pdo = get_db_connection();
