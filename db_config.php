@@ -27,12 +27,10 @@ function get_db_connection()
         ];
         $pdo = new PDO($dsn, $user, $password, $options);
 
-        // Initialize DB structure if not exists (Optional, but good to keep)
         static $initOnce = false;
         if (!$initOnce) {
             $initOnce = true;
             require_once __DIR__ . '/database_functions.php';
-            // init_db(); // Commented out for production usually, but kept if user wants auto-init
         }
 
         return $pdo;
