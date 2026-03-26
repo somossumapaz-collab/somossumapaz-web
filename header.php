@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -132,18 +134,20 @@ session_start();
             <li><a href="blog.php">Noticias</a></li>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <li><a href="user_panel.php">Panel de Usuario</a></li>
+                <?php if ($_SESSION['rol'] === 'admin'): ?>
+                    <li><a href="admin_create_user.php" style="color:var(--primary-color); font-weight:bold;">Crear Usuario</a></li>
+                <?php endif; ?>
                 <li><a href="dashboard.php" style="color:var(--secondary-color); font-weight:bold;">Tablero</a></li>
             <?php endif; ?>
         </ul>
         <div class="nav-auth">
             <?php if (isset($_SESSION['user_id'])): ?>
                 <span>Hola, <strong>
-                        <?php echo $_SESSION['usuario']; ?>
+                        <?php echo htmlspecialchars($_SESSION['usuario'] ?? 'Usuario'); ?>
                     </strong></span>
                 <a href="api/logout.php" class="btn-login">Cerrar Sesión</a>
             <?php else: ?>
                 <a href="login_page.php" class="btn-login">Login</a>
-                <a href="register_page.php" class="btn-register">Registro</a>
             <?php endif; ?>
         </div>
     </nav>

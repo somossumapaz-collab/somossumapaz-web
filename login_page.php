@@ -49,10 +49,6 @@
             style="width: 100%; border: none; padding: 14px; font-size: 1.1rem; cursor: pointer; font-weight: 600;">Ingresar</button>
     </form>
 
-    <p style="text-align: center; margin-top: 25px; color: #666; font-size: 0.95rem;">
-        ¿No tienes cuenta? <a href="register_page.php"
-            style="color: var(--primary-color); text-decoration: none; font-weight: 600;">Regístrate aquí</a>
-    </p>
 </div>
 
 <?php include 'footer.php'; ?>

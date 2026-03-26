@@ -7,17 +7,18 @@ function get_db_connection()
         return $conn;
     }
 
-    $host = "localhost";
+    $host = "15.235.82.117";
     $user = "somossum_admin";
-    $password = "somossumapaz2026*";
-    $database = "somossum_general";
+    $password = "Talento_suma";
+    $database = "somossum_talento";
 
     mysqli_report(MYSQLI_REPORT_OFF);
 
     $conn = new mysqli($host, $user, $password, $database);
 
     if ($conn->connect_error) {
-        die("Error de conexión: " . $conn->connect_error);
+        error_log("Error de conexión DB: " . $conn->connect_error);
+        return null;
     }
 
     $conn->set_charset("utf8mb4");

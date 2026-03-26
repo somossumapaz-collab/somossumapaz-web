@@ -42,6 +42,16 @@ check_auth();
             <p style="color: #666;">Consulta guías, normatividad e información relevante del proyecto.</p>
         </div>
     </a>
+
+    <!-- Opción 4: Importar desde ZIP (Nuevo) -->
+    <a href="import_zip.php" style="text-decoration: none; color: inherit;">
+        <div
+            style="background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; transition: transform 0.3s; border-bottom: 5px solid #4CAF50;">
+            <i class="fas fa-file-archive fa-3x" style="color: #4CAF50; margin-bottom: 20px;"></i>
+            <h3 style="color: #4CAF50;">Importar desde ZIP</h3>
+            <p style="color: #666;">Carga masiva de hojas de vida y soportes mediante archivo comprimido.</p>
+        </div>
+    </a>
 </div>
 
 <style>
