@@ -100,9 +100,12 @@ function get_all_resumes()
             (SELECT GROUP_CONCAT(DISTINCT nivel_educacion SEPARATOR ', ') 
              FROM persona_educacion 
              WHERE persona_id = p.id) as niveles_educacion,
-            (SELECT ROUND(SUM(TIMESTAMPDIFF(DAY, fecha_inicio, fecha_fin)) / 365, 1)
+            (SELECT ROUND(SUM(CASE 
+                WHEN fecha_fin > fecha_inicio AND fecha_fin > '1900-01-01' 
+                THEN TIMESTAMPDIFF(DAY, fecha_inicio, fecha_fin) 
+                ELSE 0 END) / 365, 1)
              FROM persona_experiencia 
-             WHERE persona_id = p.id AND fecha_inicio IS NOT NULL AND fecha_fin IS NOT NULL) as total_experiencia
+             WHERE persona_id = p.id) as total_experiencia
             FROM persona_datos_personales p 
             ORDER BY p.fecha_creacion DESC";
     $result = $conn->query($sql);

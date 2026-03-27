@@ -34,7 +34,7 @@ $references = $resume['referencias'] ?? [];
 <head>
     <meta charset="UTF-8">
     <title>Hoja de Vida -
-        <?php echo htmlspecialchars($personal['nombre_completo']); ?>
+        <?php echo htmlspecialchars($personal['nombre']); ?>
     </title>
     <style>
         :root {
@@ -204,9 +204,13 @@ $references = $resume['referencias'] ?? [];
 
 <body>
 
-    <div class="no-print">
-        <button class="btn-print" onclick="window.print()">Imprimir / Guardar como PDF</button>
-        <button class="btn-print" style="background:#666;" onclick="window.close()">Cerrar</button>
+    <div class="no-print" style="margin-top: 20px; display: flex; justify-content: center; gap: 15px;">
+        <a href="../dashboard.php" class="btn-print" style="background: #34495e; text-decoration: none; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-arrow-left" style="margin-right: 8px;"></i> Volver al Tablero
+        </a>
+        <button class="btn-print" onclick="window.print()">
+            <i class="fas fa-print" style="margin-right: 8px;"></i> Imprimir / PDF
+        </button>
     </div>
 
     <script>
@@ -220,41 +224,43 @@ $references = $resume['referencias'] ?? [];
 
     <div class="container">
         <div class="header">
-            <?php if (!empty($personal['foto_perfil_path'])): ?>
+            <?php if (!empty($personal['ruta_foto'])): ?>
                 <div class="photo-container">
-                    <img src="../<?php echo $personal['foto_perfil_path']; ?>" alt="Foto">
+                    <img src="../<?php echo $personal['ruta_foto']; ?>" alt="Foto">
                 </div>
             <?php endif; ?>
             <div class="header-info">
                 <h1>
-                    <?php echo htmlspecialchars($personal['nombre_completo']); ?>
+                    <?php echo htmlspecialchars($personal['nombre']); ?>
                 </h1>
                 <h2>
-                    <?php echo htmlspecialchars((string) ($personal['profesion'] ?? 'Candidato')); ?>
+                    <?php echo htmlspecialchars((string) ($personal['vereda'] ?? 'Candidato Sumapaz')); ?>
                 </h2>
                 <div class="contact-info">
                     <span><i class="fas fa-envelope"></i>
-                        <?php echo htmlspecialchars($personal['email']); ?>
+                        <?php echo htmlspecialchars($personal['email'] ?: 'No registrado'); ?>
                     </span>
                     <span><i class="fas fa-phone"></i>
-                        <?php echo htmlspecialchars($personal['telefono']); ?>
+                        <?php echo htmlspecialchars($personal['telefono'] ?: 'No registrado'); ?>
                     </span>
                     <span><i class="fas fa-id-card"></i>
-                        <?php echo htmlspecialchars($personal['numero_documento']); ?>
+                        <?php echo htmlspecialchars(($personal['tipo_documento'] ?? 'CC') . ': ' . $personal['documento']); ?>
                     </span>
                     <span><i class="fas fa-map-marker-alt"></i>
-                        <?php echo htmlspecialchars($personal['municipio_residencia'] . ', ' . $personal['departamento_residencia']); ?>
+                        <?php echo htmlspecialchars($personal['municipio_residencia'] ?? 'Sumapaz'); ?>
                     </span>
                 </div>
             </div>
         </div>
 
+        <?php if (!empty($personal['perfil_profesional'])): ?>
         <div class="section">
             <div class="section-title">PERFIL PROFESIONAL</div>
             <div class="section-body">
                 <?php echo nl2br(htmlspecialchars($personal['perfil_profesional'])); ?>
             </div>
         </div>
+        <?php endif; ?>
 
         <?php if (!empty($skills)): ?>
             <div class="section">
@@ -277,11 +283,11 @@ $references = $resume['referencias'] ?? [];
                         <div class="item">
                             <div class="item-header">
                                 <span>
-                                    <?php echo htmlspecialchars((string) ($e['nivel_educativo'] ?? '')); ?>
+                                    <?php echo htmlspecialchars((string) ($e['nivel_educacion'] ?? $e['titulo'] ?? '')); ?>
                                 </span>
                                 <span>
-                                    <?php echo $e['fecha_inicio']; ?> —
-                                    <?php echo ($e['en_curso'] ? 'Actualidad' : $e['fecha_fin']); ?>
+                                    <?php echo $e['fecha_inicio'] ?: 'N/A'; ?> —
+                                    <?php echo ($e['fecha_fin'] ?: 'Actualidad'); ?>
                                 </span>
                             </div>
                             <div class="item-sub">
@@ -304,15 +310,15 @@ $references = $resume['referencias'] ?? [];
                                     <?php echo htmlspecialchars((string) ($ex['cargo'] ?? '')); ?>
                                 </span>
                                 <span>
-                                    <?php echo $ex['fecha_inicio']; ?> —
-                                    <?php echo ($ex['actualmente'] ? 'Actualidad' : $ex['fecha_fin']); ?>
+                                    <?php echo $ex['fecha_inicio'] ?: 'N/A'; ?> —
+                                    <?php echo ($ex['fecha_fin'] ?: 'Actualidad'); ?>
                                 </span>
                             </div>
                             <div class="item-sub">
                                 <?php echo htmlspecialchars((string) ($ex['empresa'] ?? '')); ?>
                             </div>
                             <div class="item-desc">
-                                <?php echo nl2br(htmlspecialchars($ex['descripcion_cargo'] ?? '')); ?>
+                                <?php echo nl2br(htmlspecialchars($ex['descripcion'] ?? '')); ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -330,11 +336,10 @@ $references = $resume['referencias'] ?? [];
                                 <?php echo htmlspecialchars((string) ($r['nombre'] ?? '')); ?>
                             </div>
                             <div class="item-sub">
-                                <?php echo htmlspecialchars((string) ($r['tipo'] ?? '')); ?> —
-                                <?php echo htmlspecialchars((string) ($r['ocupacion'] ?? $r['parentesco'] ?? '')); ?>
+                                <?php echo htmlspecialchars((string) ($r['ocupacion'] ?? 'Referencia')); ?>
                             </div>
                             <div class="item-desc">Teléfono:
-                                <?php echo htmlspecialchars((string) ($r['telefono'] ?? '')); ?>
+                                <?php echo htmlspecialchars((string) ($r['telefono'] ?? 'No registrado')); ?>
                             </div>
                         </div>
                     <?php endforeach; ?>
