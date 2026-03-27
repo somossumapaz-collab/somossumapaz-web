@@ -347,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.nombre || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.vereda || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.niveles_educacion || "No registrado"}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--secondary-color);">${resume.total_experiencia || "0"}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.telefono || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.email || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">
@@ -362,3 +363,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
 });
+
+function toggleLoginDrawer() {
+    const drawer = document.getElementById('loginDrawer');
+    const overlay = document.getElementById('loginDrawerOverlay');
+    if (drawer && overlay) {
+        drawer.classList.toggle('active');
+        overlay.classList.toggle('active');
+        if (drawer.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+}

@@ -14,6 +14,62 @@ if (session_status() === PHP_SESSION_NONE) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
+        /* Drawer Styles */
+        .login-drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .login-drawer {
+            position: fixed;
+            top: 0;
+            right: -450px;
+            width: 450px;
+            max-width: 90%;
+            height: 100%;
+            background: #fff;
+            z-index: 2001;
+            box-shadow: -5px 0 30px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease-in-out;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .login-drawer.active {
+            right: 0;
+        }
+
+        .login-drawer-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        .close-drawer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-drawer:hover {
+            color: var(--primary-color);
+        }
+
         :root {
             --primary-color: #2e7d32;
             /* Deep Green */
@@ -124,19 +180,50 @@ if (session_status() === PHP_SESSION_NONE) {
 </head>
 
 <body>
+    <!-- Login Drawer -->
+    <div id="loginDrawerOverlay" class="login-drawer-overlay" onclick="toggleLoginDrawer()"></div>
+    <div id="loginDrawer" class="login-drawer">
+        <button class="close-drawer" onclick="toggleLoginDrawer()"><i class="fas fa-times"></i></button>
+        <div style="text-align: center; margin-top: 20px; margin-bottom: 25px;">
+            <img src="static/img/logo_sumapaz.png" alt="Logo" style="height: 80px; margin-bottom: 15px;">
+            <h2 style="color: var(--primary-color); font-size: 2rem; margin-bottom: 10px;">Iniciar Sesión</h2>
+            <p style="color: #666;">Ingresa tus credenciales para acceder</p>
+        </div>
+
+        <form action="api/login.php" method="POST">
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Usuario</label>
+                <input type="text" name="username" required placeholder="Nombre de usuario"
+                    style="width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; outline: none; transition: border-color 0.3s;">
+            </div>
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Contraseña</label>
+                <input type="password" name="password" required placeholder="••••••••"
+                    style="width: 100%; padding: 14px; border: 1px solid #ddd; border-radius: 12px; outline: none;">
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; font-size: 0.9rem;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" name="remember"> Recordar usuario
+                </label>
+                <a href="#" style="color: var(--secondary-color); text-decoration: none;">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit" class="btn-register"
+                style="width: 100%; border: none; padding: 16px; font-size: 1.1rem; cursor: pointer; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 15px rgba(46, 125, 50, 0.2);">Entrar</button>
+        </form>
+
+        <div style="margin-top: auto; text-align: center; font-size: 0.9rem; color: #666;">
+            ¿No tienes una cuenta? <a href="register_page.php" style="color: var(--primary-color); font-weight: bold; text-decoration: none;">Contáctanos</a>
+        </div>
+    </div>
     <nav class="navbar">
         <a href="index.php" class="logo-container">
-            <img src="static/img/logo.png" alt="Talento Sumapaz" class="logo-img">
+            <img src="static/img/logo_sumapaz.png" alt="Logo" style="height: 40px; margin-right: 12px;">
             <span class="logo-text">Talento Sumapaz</span>
         </a>
         <ul class="nav-links">
-            <li><a href="index.php">Inicio</a></li>
-            <li><a href="blog.php">Noticias</a></li>
             <?php if (isset($_SESSION['user_id'])): ?>
-                <li><a href="user_panel.php">Panel de Usuario</a></li>
-                <?php if ($_SESSION['rol'] === 'admin'): ?>
-                    <li><a href="admin_create_user.php" style="color:var(--primary-color); font-weight:bold;">Crear Usuario</a></li>
-                <?php endif; ?>
                 <li><a href="dashboard.php" style="color:var(--secondary-color); font-weight:bold;">Tablero</a></li>
             <?php endif; ?>
         </ul>
@@ -147,7 +234,7 @@ if (session_status() === PHP_SESSION_NONE) {
                     </strong></span>
                 <a href="api/logout.php" class="btn-login">Cerrar Sesión</a>
             <?php else: ?>
-                <a href="login_page.php" class="btn-login">Login</a>
+                <a href="javascript:void(0)" class="btn-login" onclick="toggleLoginDrawer()">Login</a>
             <?php endif; ?>
         </div>
     </nav>

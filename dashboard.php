@@ -10,8 +10,6 @@ check_auth();
     <div style="display: flex; gap: 15px;">
         <a href="api/download_database.php" class="btn-login" style="font-size: 0.9rem; text-decoration: none;"><i
                 class="fas fa-database"></i> Exportar Base de Datos (CSV)</a>
-        <a href="resume_form.php" class="btn-register" style="font-size: 0.9rem; text-decoration: none;"><i
-                class="fas fa-plus"></i> Nueva Hoja de Vida</a>
     </div>
 </div>
 
@@ -59,6 +57,7 @@ check_auth();
                     <th style="padding: 15px; border-bottom: 2px solid #eee;">Nombre</th>
                     <th style="padding: 15px; border-bottom: 2px solid #eee;">Vereda</th>
                     <th style="padding: 15px; border-bottom: 2px solid #eee;">Nivel Educativo</th>
+                    <th style="padding: 15px; border-bottom: 2px solid #eee;">Exp. (Años)</th>
                     <th style="padding: 15px; border-bottom: 2px solid #eee;">Teléfono</th>
                     <th style="padding: 15px; border-bottom: 2px solid #eee;">Email</th>
                     <th style="padding: 15px; border-bottom: 2px solid #eee;">Acciones</th>
