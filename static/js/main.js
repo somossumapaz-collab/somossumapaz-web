@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!tableBody) return;
 
-        tableBody.innerHTML = '<tr><td colspan="4">Cargando...</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
 
         try {
 
@@ -278,9 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             tableBody.innerHTML = "";
 
+            const countEl = document.getElementById('total-resumes-count');
+            if (countEl) countEl.innerText = result.data ? result.data.length : 0;
+
             if (!result.data || result.data.length === 0) {
 
-                tableBody.innerHTML = '<tr><td colspan="4">No hay hojas de vida</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="6">No hay hojas de vida</td></tr>';
                 return;
 
             }
@@ -290,11 +293,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const row = document.createElement('tr');
 
                 row.innerHTML = `
-                <td>${resume.nombre || ""}</td>
-                <td>${resume.nicho_cargo || ""}</td>
-                <td>${resume.telefono || ""}<br>${resume.email || ""}</td>
-                <td>
-                <a href="api/download_resume_pdf.php?id=${resume.id}" target="_blank">Ver</a>
+                <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.nombre || ""}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.vereda || ""}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.niveles_educacion || "No registrado"}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.telefono || ""}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.email || ""}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                <a href="api/download_resume_pdf.php?id=${resume.id}" target="_blank" class="btn-register" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Ver</a>
                 </td>
                 `;
 
@@ -304,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         } catch (e) {
 
-            tableBody.innerHTML = '<tr><td colspan="4">Error cargando datos</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="6">Error cargando datos</td></tr>';
 
         }
 

@@ -103,6 +103,11 @@ check_auth();
                     </div>
 
                     <div>
+                        <label>Vereda / Barrio</label>
+                        <input type="text" name="vereda">
+                    </div>
+
+                    <div>
                         <label>Foto perfil</label>
                         <input type="file" name="photo" accept="image/*">
                     </div>

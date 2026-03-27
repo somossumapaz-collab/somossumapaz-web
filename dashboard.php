@@ -27,14 +27,30 @@ check_auth();
                 class="fas fa-sync-alt"></i> Refrescar</button>
     </div>
 
-    <div id="resumes-list" class="table-container" style="overflow-x: auto;">
+    <!-- Tarjeta de Resumen -->
+    <div style="display: flex; gap: 20px; margin-bottom: 25px;">
+        <div style="background: linear-gradient(135deg, #1a73e8, #1557b0); color: white; padding: 20px; border-radius: 15px; flex: 1; display: flex; align-items: center; gap: 15px; box-shadow: 0 4px 15px rgba(26,115,232,0.3);">
+            <div style="background: rgba(255,255,255,0.2); width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.9rem; opacity: 0.9;">Hojas de vida inscritas</div>
+                <div id="total-resumes-count" style="font-size: 1.8rem; font-weight: bold;">0</div>
+            </div>
+        </div>
+        <div style="flex: 2;"></div> <!-- Espacio para futuras métricas -->
+    </div>
+
+    <div id="resumes-list" class="table-container" style="overflow-x: auto; max-height: 500px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px;">
         <!-- Carga dinámica vía JavaScript -->
         <table style="width: 100%; border-collapse: collapse; min-width: 800px;">
-            <thead>
+            <thead style="position: sticky; top: 0; background: white; z-index: 10;">
                 <tr style="background: var(--bg-color); text-align: left;">
                     <th style="padding: 15px; border-bottom: 2px solid #eee;">Nombre</th>
-                    <th style="padding: 15px; border-bottom: 2px solid #eee;">Nicho/Cargo</th>
-                    <th style="padding: 15px; border-bottom: 2px solid #eee;">Contacto</th>
+                    <th style="padding: 15px; border-bottom: 2px solid #eee;">Vereda</th>
+                    <th style="padding: 15px; border-bottom: 2px solid #eee;">Nivel Educativo</th>
+                    <th style="padding: 15px; border-bottom: 2px solid #eee;">Teléfono</th>
+                    <th style="padding: 15px; border-bottom: 2px solid #eee;">Email</th>
                     <th style="padding: 15px; border-bottom: 2px solid #eee;">Acciones</th>
                 </tr>
             </thead>

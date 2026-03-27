@@ -7,10 +7,10 @@ function get_db_connection()
         return $conn;
     }
 
-    $host = "15.235.82.117";
-    $user = "somossum_admin";
-    $password = "Talento_suma";
-    $database = "somossum_talento";
+    $host = "srv1220.hstgr.io";
+    $user = "u949171480_sumapaz_admin";
+    $password = "Somossumapaz2026*";
+    $database = "u949171480_somos_sumapaz";
 
     mysqli_report(MYSQLI_REPORT_OFF);
 
