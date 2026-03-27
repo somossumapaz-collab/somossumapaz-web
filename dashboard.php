@@ -16,15 +16,25 @@ check_auth();
 </div>
 
 <div style="background: #fff; padding: 30px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-    <div style="margin-bottom: 25px; display: flex; gap: 20px; align-items: center;">
-        <div style="flex: 1; position: relative;">
-            <i class="fas fa-search"
-                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #999;"></i>
-            <input type="text" id="searchInput" placeholder="Filtrar por nombre, cargo o habilidad..."
-                style="width: 100%; padding: 12px 12px 12px 45px; border: 1px solid #ddd; border-radius: 10px; outline: none;">
+    <div style="margin-bottom: 25px; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 15px; align-items: end;">
+        <div>
+            <label style="display:block; margin-bottom:5px; font-size:0.85rem; color:#666;">Filtrar por Nombre</label>
+            <input type="text" id="filterNombre" placeholder="Buscar nombre..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
         </div>
-        <button onclick="window.location.reload()" class="btn-login" style="border: none; cursor: pointer;"><i
-                class="fas fa-sync-alt"></i> Refrescar</button>
+        <div>
+            <label style="display:block; margin-bottom:5px; font-size:0.85rem; color:#666;">Vereda / Barrio</label>
+            <select id="filterVereda" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <option value="">Todas</option>
+            </select>
+        </div>
+        <div>
+            <label style="display:block; margin-bottom:5px; font-size:0.85rem; color:#666;">Nivel Educativo</label>
+            <select id="filterEducacion" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px;">
+                <option value="">Todos</option>
+            </select>
+        </div>
+        <button onclick="window.location.reload()" class="btn-login" style="border: none; cursor: pointer; height:42px;"><i
+                class="fas fa-sync-alt"></i></button>
     </div>
 
     <!-- Tarjeta de Resumen -->
@@ -63,17 +73,7 @@ check_auth();
 
 <script>
     document.addEventListener('DOMContentLoaded', function ( ) {
-        // El script main.js ya contiene la lógica de carga, 
-        // solo aseguramos que el buscador filtre localmente
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', function  () {
-            const term = this.value.toLowerCase();
-            const rows = document.querySelectorAll('#resumeTableBody tr');
-            rows.forEach(row => {
-                const text = row.innerText.toLowerCase();
-                row.style.display = text.includes(term) ? '' : 'none';
-            });
-        });
+        // La lógica de filtrado avanzado está integrada en main.js tras cargar los datos
     });
 </script>
 

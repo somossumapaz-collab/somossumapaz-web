@@ -263,56 +263,98 @@ document.addEventListener('DOMContentLoaded', () => {
     =================================== */
 
     async function loadResumes() {
-
         const tableBody = document.getElementById('resumeTableBody');
-
         if (!tableBody) return;
 
         tableBody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
 
         try {
-
             const response = await fetch('api/get_resumes_dashboard.php');
-
             const result = await response.json();
 
-            tableBody.innerHTML = "";
-
-            const countEl = document.getElementById('total-resumes-count');
-            if (countEl) countEl.innerText = result.data ? result.data.length : 0;
-
             if (!result.data || result.data.length === 0) {
-
                 tableBody.innerHTML = '<tr><td colspan="6">No hay hojas de vida</td></tr>';
                 return;
-
             }
 
-            result.data.forEach(resume => {
+            window.allResumes = result.data;
+            
+            const veredas = new Set();
+            const educaciones = new Set();
+            result.data.forEach(r => {
+                if (r.vereda) veredas.add(r.vereda.trim());
+                if (r.niveles_educacion) {
+                    r.niveles_educacion.split(',').forEach(edu => educaciones.add(edu.trim()));
+                }
+            });
 
-                const row = document.createElement('tr');
+            const selVereda = document.getElementById('filterVereda');
+            const selEdu = document.getElementById('filterEducacion');
+            if (selVereda) {
+                selVereda.innerHTML = '<option value="">Todas</option>';
+                Array.from(veredas).sort().forEach(v => {
+                    const opt = document.createElement('option');
+                    opt.value = v; opt.textContent = v;
+                    selVereda.appendChild(opt);
+                });
+            }
+            if (selEdu) {
+                selEdu.innerHTML = '<option value="">Todos</option>';
+                Array.from(educaciones).sort().forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e; opt.textContent = e;
+                    selEdu.appendChild(opt);
+                });
+            }
 
-                row.innerHTML = `
+            renderFilteredResumes(result.data);
+
+            ['filterNombre', 'filterVereda', 'filterEducacion'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('input', applyFilters);
+            });
+        } catch (e) {
+            console.error("Error loading resumes:", e);
+            tableBody.innerHTML = '<tr><td colspan="6">Error cargando datos</td></tr>';
+        }
+    }
+
+    function applyFilters() {
+        const nombreVal = (document.getElementById('filterNombre')?.value || "").toLowerCase();
+        const veredaVal = document.getElementById('filterVereda')?.value || "";
+        const eduVal = document.getElementById('filterEducacion')?.value || "";
+
+        const filtered = window.allResumes.filter(r => {
+            const matchNombre = (r.nombre || "").toLowerCase().includes(nombreVal);
+            const matchVereda = veredaVal === "" || (r.vereda || "") === veredaVal;
+            const matchEdu = eduVal === "" || (r.niveles_educacion || "").includes(eduVal);
+            return matchNombre && matchVereda && matchEdu;
+        });
+        renderFilteredResumes(filtered);
+    }
+
+    function renderFilteredResumes(data) {
+        const tableBody = document.getElementById('resumeTableBody');
+        if (!tableBody) return;
+        
+        const countEl = document.getElementById('total-resumes-count');
+        if (countEl) countEl.innerText = data.length;
+
+        tableBody.innerHTML = "";
+        data.forEach(resume => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.nombre || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.vereda || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.niveles_educacion || "No registrado"}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.telefono || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.email || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">
-                <a href="api/download_resume_pdf.php?id=${resume.id}" target="_blank" class="btn-register" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Ver</a>
+                    <a href="api/download_resume_pdf.php?id=${resume.id}" target="_blank" class="btn-register" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Ver</a>
                 </td>
-                `;
-
-                tableBody.appendChild(row);
-
-            });
-
-        } catch (e) {
-
-            tableBody.innerHTML = '<tr><td colspan="6">Error cargando datos</td></tr>';
-
-        }
-
+            `;
+            tableBody.appendChild(row);
+        });
     }
 
     if (document.getElementById('resumeTableBody')) {
