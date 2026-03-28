@@ -1,0 +1,2 @@
+RewriteEngine On
+RewriteRule ^descargar_cv$ api/download_resume_pdf.php [QSA,L]

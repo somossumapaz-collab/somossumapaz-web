@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.telefono || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.email || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">
-                    <a href="api/download_resume_pdf.php?id=${resume.id}" target="_blank" class="btn-register" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Ver</a>
+                    <a href="descargar_cv.php?id=${resume.id}" target="_blank" class="btn-register" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Ver</a>
                 </td>
             `;
             tableBody.appendChild(row);

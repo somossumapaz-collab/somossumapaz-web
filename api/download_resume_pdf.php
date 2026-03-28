@@ -212,6 +212,9 @@ $references = $resume['referencias'] ?? [];
             <i class="fas fa-print" style="margin-right: 8px;"></i> Imprimir / PDF
         </button>
     </div>
+    <div class="no-print" style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9rem;">
+        ID de Hoja de Vida: <?php echo $hv_id; ?>
+    </div>
 
     <script>
         // Auto-print when loaded
@@ -345,6 +348,56 @@ $references = $resume['referencias'] ?? [];
                     <?php endforeach; ?>
                 </div>
             </div>
+        <?php endif; ?>
+
+        <!-- Sección de Anexos y Soportes -->
+        <?php 
+        $has_anexos = !empty($personal['ruta_cedula']) || 
+                      !empty(array_filter($education, function($e) { return !empty($e['ruta_certificado']); })) || 
+                      !empty(array_filter($experience, function($ex) { return !empty($ex['ruta_experiencia']); }));
+        
+        if ($has_anexos): 
+        ?>
+        <div class="section" style="page-break-before: always; border-top: 2px solid var(--accent); padding-top: 30px; margin-top: 50px;">
+            <div class="section-title" style="font-size: 1.5rem; justify-content: center; color: var(--accent); border:none;">
+                <i class="fas fa-file-alt" style="margin-right: 12px;"></i> ANEXOS Y SOPORTES CONCATENADOS
+            </div>
+            
+            <?php 
+            function render_soporte($path, $title) {
+                if (empty($path)) return;
+                $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+                $is_img = in_array($ext, ['jpg', 'jpeg', 'png', 'webp']);
+                ?>
+                <div class="section" style="margin-top: 30px; break-inside: avoid;">
+                    <div class="section-title"><?php echo $title; ?></div>
+                    <div class="section-body" style="text-align: center;">
+                        <?php if ($is_img): ?>
+                            <img src="../<?php echo $path; ?>" style="max-width: 100%; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        <?php else: ?>
+                            <iframe src="../<?php echo $path; ?>" style="width:100%; height:800px; border: 1px solid #ddd; border-radius: 8px;"></iframe>
+                        <?php endif; ?>
+                        <div class="no-print" style="margin-top: 10px;">
+                            <a href="../<?php echo $path; ?>" target="_blank" style="color: var(--accent); text-decoration: none; font-weight: bold;">
+                                <i class="fas fa-external-link-alt"></i> Ver archivo original
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <?php
+            }
+
+            render_soporte($personal['ruta_cedula'] ?? null, "DOCUMENTO DE IDENTIDAD");
+
+            foreach ($education as $e) {
+                render_soporte($e['ruta_certificado'] ?? null, "CERTIFICADO ACADÉMICO: " . ($e['nivel_educacion'] ?? $e['titulo']));
+            }
+
+            foreach ($experience as $ex) {
+                render_soporte($ex['ruta_experiencia'] ?? null, "CERTIFICADO LABORAL: " . ($ex['empresa'] . " - " . $ex['cargo']));
+            }
+            ?>
+        </div>
         <?php endif; ?>
     </div>
 
