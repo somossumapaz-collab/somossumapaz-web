@@ -121,6 +121,73 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            // Logic for "En curso" / "Actualmente aquí"
+            const currentCheckbox = item.querySelector('input[type="checkbox"]');
+            const endTimeInput = item.querySelector('input[type="date"][name*="end_date"]');
+            
+            if (currentCheckbox && endTimeInput) {
+                const updateCurrentState = () => {
+                    if (currentCheckbox.checked) {
+                        endTimeInput.value = "2999-01-01";
+                        endTimeInput.style.display = "none";
+                        // Also hide label if possible
+                        if (endTimeInput.previousElementSibling && endTimeInput.previousElementSibling.tagName === "LABEL") {
+                            endTimeInput.previousElementSibling.style.display = "none";
+                        }
+                    } else {
+                        if (endTimeInput.value === "2999-01-01") endTimeInput.value = "";
+                        endTimeInput.style.display = "block";
+                        if (endTimeInput.previousElementSibling && endTimeInput.previousElementSibling.tagName === "LABEL") {
+                            endTimeInput.previousElementSibling.style.display = "block";
+                        }
+                    }
+                };
+                currentCheckbox.addEventListener('change', updateCurrentState);
+                // Initial check for pre-filled data
+                if (endTimeInput.value === "2999-01-01") {
+                    currentCheckbox.checked = true;
+                    updateCurrentState();
+                }
+            }
+
+            // Logic for Academic Level conditional fields
+            if (type === "education") {
+                const levelSelect = item.querySelector('select');
+                const startDateInput = item.querySelector('input[type="date"][name*="start_date"]');
+                const fileInput = item.querySelector('input[type="file"]');
+                const titleInput = item.querySelector('input[name*="title_obtained"]');
+
+                if (levelSelect) {
+                    const updateLevelFields = () => {
+                        const level = levelSelect.value;
+                        const hideAll = ["Autodidacta", "Sin Estudios Académicos"].includes(level);
+                        const hideFile = ["Bachiller Incompleto", "Primaria Incompleta"].includes(level) || hideAll;
+
+                        const dateRow = [startDateInput, endTimeInput];
+                        dateRow.forEach(el => {
+                            if (el) {
+                                el.style.display = hideAll ? "none" : "block";
+                                if (el.previousElementSibling && el.previousElementSibling.tagName === "LABEL") {
+                                    el.previousElementSibling.style.display = hideAll ? "none" : "block";
+                                }
+                            }
+                        });
+
+                        if (fileInput) {
+                            fileInput.style.display = hideFile ? "none" : "block";
+                            if (fileInput.previousElementSibling && fileInput.previousElementSibling.tagName === "LABEL") {
+                                fileInput.previousElementSibling.style.display = hideFile ? "none" : "block";
+                            }
+                        }
+
+                        // Bonus: if autodidacta/sin estudios, maybe title is also hidden?
+                        // User didn't say, but usually it is. I'll leave it for now.
+                    };
+                    levelSelect.addEventListener('change', updateLevelFields);
+                    updateLevelFields(); // Initial run
+                }
+            }
+
             if (type === "education") {
                 eduList.appendChild(item);
             } else {

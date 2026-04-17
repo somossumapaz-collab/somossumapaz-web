@@ -101,9 +101,9 @@ function get_all_resumes()
              FROM persona_educacion 
              WHERE persona_id = p.id) as niveles_educacion,
             (SELECT ROUND(SUM(CASE 
-                WHEN fecha_fin > fecha_inicio AND fecha_fin > '1900-01-01' 
+                WHEN fecha_fin > fecha_inicio AND fecha_fin > '1900-01-01' AND fecha_fin < '2900-01-01'
                 THEN TIMESTAMPDIFF(DAY, fecha_inicio, fecha_fin) 
-                WHEN fecha_inicio IS NOT NULL AND (fecha_fin IS NULL OR fecha_fin < '1900-01-01' OR fecha_fin <= fecha_inicio)
+                WHEN fecha_inicio IS NOT NULL AND (fecha_fin IS NULL OR fecha_fin <= '1900-01-01' OR fecha_fin >= '2900-01-01' OR fecha_fin <= fecha_inicio)
                 THEN TIMESTAMPDIFF(DAY, fecha_inicio, CURDATE())
                 ELSE 0 END) / 365, 1)
              FROM persona_experiencia 

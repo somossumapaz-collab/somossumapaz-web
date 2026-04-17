@@ -278,8 +278,16 @@ $references = $resume['referencias'] ?? [];
                                     <?php echo htmlspecialchars((string) ($e['nivel_educacion'] ?? $e['titulo'] ?? '')); ?>
                                 </span>
                                 <span>
-                                    <?php echo $e['fecha_inicio'] ?: 'N/A'; ?> —
-                                    <?php echo ($e['fecha_fin'] ?: 'Actualidad'); ?>
+                                    <?php 
+                                    $lvl = $e['nivel_educacion'] ?? '';
+                                    $no_dates = in_array($lvl, ['Autodidacta', 'Sin Estudios Académicos']);
+                                    if ($no_dates) {
+                                        echo ""; 
+                                    } else {
+                                        echo ($e['fecha_inicio'] ?: 'N/A') . " — ";
+                                        echo ($e['fecha_fin'] === '2999-01-01' ? 'En curso' : ($e['fecha_fin'] ?: 'Actualidad'));
+                                    }
+                                    ?>
                                 </span>
                             </div>
                             <div class="item-sub">
@@ -306,7 +314,7 @@ $references = $resume['referencias'] ?? [];
                                 </span>
                                 <span>
                                     <?php echo $ex['fecha_inicio'] ?: 'N/A'; ?> —
-                                    <?php echo ($ex['fecha_fin'] ?: 'Actualidad'); ?>
+                                    <?php echo ($ex['fecha_fin'] === '2999-01-01' ? 'En curso' : ($ex['fecha_fin'] ?: 'Actualidad')); ?>
                                 </span>
                             </div>
                             <div class="item-sub">

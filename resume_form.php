@@ -251,14 +251,21 @@ if ($id > 0) {
     <div class="dynamic-item">
 
         <label>Nivel educativo</label>
-        <select name="education_INDEX_level">
+        <select name="education_INDEX_level" class="education-level-select">
             <option value="">Seleccione</option>
+            <option>Primaria</option>
+            <option>Primaria Incompleta</option>
             <option>Bachiller</option>
+            <option>Bachiller Incompleto</option>
+            <option>Bachiller Técnico</option>
             <option>Técnico</option>
             <option>Tecnólogo</option>
-            <option>Universitario</option>
+            <option>Profesional</option>
             <option>Especialización</option>
             <option>Maestría</option>
+            <option>Autodidacta</option>
+            <option>En Formación</option>
+            <option>Sin Estudios Académicos</option>
         </select>
 
         <label>Título obtenido</label>
