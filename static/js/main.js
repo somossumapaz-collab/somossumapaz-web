@@ -27,12 +27,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         select.innerHTML = '<option value="">Seleccione...</option>';
 
+        const selectedVal = select.getAttribute('data-selected');
         departments.sort().forEach(dept => {
             const opt = document.createElement('option');
             opt.value = dept;
             opt.textContent = dept;
+            if (dept === selectedVal) opt.selected = true;
             select.appendChild(opt);
         });
+
+        if (selectedVal) {
+            select.dispatchEvent(new Event('change'));
+        }
     }
 
     function handleDeptChange(deptSelectId, citySelectId) {
@@ -48,18 +54,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
             citySelect.innerHTML = '<option value="">Seleccione Municipio...</option>';
 
+            const selectedCity = citySelect.getAttribute('data-selected');
             if (cities[dept]) {
 
                 cities[dept].sort().forEach(city => {
                     const opt = document.createElement('option');
                     opt.value = city;
                     opt.textContent = city;
+                    if (city === selectedCity) opt.selected = true;
                     citySelect.appendChild(opt);
                 });
 
             }
         });
 
+        // Trigger change if department is already selected
+        if (deptSelect.value) {
+            deptSelect.dispatchEvent(new Event('change'));
+        }
     }
 
     populateDepartments('birth_department');
@@ -70,55 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     /* ===================================
-       2. HABILIDADES
-    =================================== */
-
-    const skillsList = [
-        "Albañilería", "Carpintería", "Electricidad", "Plomería", "Pintura",
-        "Soldadura", "Gestión de Proyectos", "Excel Básico", "Excel Avanzado",
-        "Liderazgo", "Atención al Cliente", "Conducción (C1/C2)",
-        "Seguridad Industrial", "Mantenimiento", "Limpieza", "Cocina",
-        "Administración", "Contabilidad"
-    ];
-
-    const mosaic = document.getElementById('skills-mosaic');
-    const skillsInput = document.getElementById('skills-input');
-
-    const selectedSkills = new Set();
-
-    if (mosaic) {
-
-        skillsList.sort().forEach(skill => {
-
-            const card = document.createElement('div');
-            card.className = 'skill-card';
-            card.textContent = skill;
-
-            card.addEventListener('click', () => {
-
-                if (selectedSkills.has(skill)) {
-                    selectedSkills.delete(skill);
-                    card.classList.remove('selected');
-                } else {
-                    selectedSkills.add(skill);
-                    card.classList.add('selected');
-                }
-
-                if (skillsInput) {
-                    skillsInput.value = Array.from(selectedSkills).join(',');
-                }
-
-            });
-
-            mosaic.appendChild(card);
-
-        });
-
-    }
-
-
-    /* ===================================
-       3. EDUCACION Y EXPERIENCIA DINAMICA
+       2. EDUCACION Y EXPERIENCIA DINAMICA
     =================================== */
 
     const resumeForm = document.getElementById('resume-form');
@@ -163,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 expList.appendChild(item);
             }
 
+            return item;
         }
 
         if (addEduBtn) {
@@ -173,9 +138,88 @@ document.addEventListener('DOMContentLoaded', () => {
             addExpBtn.addEventListener('click', () => addItem("experience"));
         }
 
+        // Prefill dynamic items if editing
+        if (window.personData) {
+            if (window.personData.formacion) {
+                window.personData.formacion.forEach(edu => {
+                    const item = addItem("education");
+                    const idx = item.querySelector('[name^="education_"]').name.split('_')[1];
+                    item.querySelector(`[name="education_${idx}_level"]`).value = edu.nivel_educacion || '';
+                    item.querySelector(`[name="education_${idx}_title_obtained"]`).value = edu.titulo_obtenido || '';
+                    item.querySelector(`[name="education_${idx}_institution"]`).value = edu.institucion || '';
+                    item.querySelector(`[name="education_${idx}_start_date"]`).value = edu.fecha_inicio || '';
+                    item.querySelector(`[name="education_${idx}_end_date"]`).value = edu.fecha_fin || '';
+
+                    const fileLabel = item.querySelector('label:last-of-type');
+                    if (edu.ruta_soporte) {
+                        const link = document.createElement('a');
+                        link.href = edu.ruta_soporte;
+                        link.target = "_blank";
+                        link.style.display = "block";
+                        link.style.fontSize = "0.7rem";
+                        link.style.color = "#1a73e8";
+                        link.innerText = "(Ver certificado actual)";
+                        fileLabel.after(link);
+
+                        const hiddenFile = document.createElement('input');
+                        hiddenFile.type = "hidden";
+                        hiddenFile.name = `education_${idx}_old_file`;
+                        hiddenFile.value = edu.ruta_soporte;
+                        link.after(hiddenFile);
+                    } else {
+                        const span = document.createElement('span');
+                        span.style.display = "block";
+                        span.style.fontSize = "0.7rem";
+                        span.style.color = "#666";
+                        span.style.fontStyle = "italic";
+                        span.innerText = "No cuenta con soporte";
+                        fileLabel.after(span);
+                    }
+                });
+            }
+
+            if (window.personData.experiencia) {
+                window.personData.experiencia.forEach(exp => {
+                    const item = addItem("experience");
+                    const idx = item.querySelector('[name^="experience_"]').name.split('_')[1];
+                    item.querySelector(`[name="experience_${idx}_company"]`).value = exp.empresa || '';
+                    item.querySelector(`[name="experience_${idx}_role"]`).value = exp.cargo || '';
+                    item.querySelector(`[name="experience_${idx}_description"]`).value = exp.descripcion || '';
+                    item.querySelector(`[name="experience_${idx}_start_date"]`).value = exp.fecha_inicio || '';
+                    item.querySelector(`[name="experience_${idx}_end_date"]`).value = exp.fecha_fin || '';
+
+                    const fileLabel = item.querySelector('label:last-of-type');
+                    if (exp.ruta_soporte) {
+                        const link = document.createElement('a');
+                        link.href = exp.ruta_soporte;
+                        link.target = "_blank";
+                        link.style.display = "block";
+                        link.style.fontSize = "0.7rem";
+                        link.style.color = "#1a73e8";
+                        link.innerText = "(Ver certificado actual)";
+                        fileLabel.after(link);
+
+                        const hiddenFile = document.createElement('input');
+                        hiddenFile.type = "hidden";
+                        hiddenFile.name = `experience_${idx}_old_file`;
+                        hiddenFile.value = exp.ruta_soporte;
+                        link.after(hiddenFile);
+                    } else {
+                        const span = document.createElement('span');
+                        span.style.display = "block";
+                        span.style.fontSize = "0.7rem";
+                        span.style.color = "#666";
+                        span.style.fontStyle = "italic";
+                        span.innerText = "No cuenta con soporte";
+                        fileLabel.after(span);
+                    }
+                });
+            }
+        }
+
 
         /* ===================================
-           4. SUBMIT FORMULARIO
+           3. SUBMIT FORMULARIO
         =================================== */
 
         resumeForm.addEventListener('submit', async (e) => {
@@ -350,8 +394,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td style="padding: 15px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--secondary-color);">${resume.total_experiencia || "0"}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.telefono || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.email || ""}</td>
-                <td style="padding: 15px; border-bottom: 1px solid #eee;">
+                <td style="padding: 15px; border-bottom: 1px solid #eee; display: flex; gap: 5px;">
                     <a href="descargar_cv.php?id=${resume.id}" target="_blank" class="btn-register" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Ver</a>
+                    <a href="resume_form.php?id=${resume.id}" class="btn-login" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none; background: var(--secondary-color);">Editar</a>
                 </td>
             `;
             tableBody.appendChild(row);

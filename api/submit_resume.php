@@ -16,6 +16,6 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Use centralized logic
-$result = save_resume_data($user_id, $_POST, $_FILES);
+$result = save_resume_data($_POST, $_FILES);
 
 echo json_encode($result);

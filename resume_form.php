@@ -3,6 +3,12 @@ session_start();
 require_once 'database_functions.php';
 include 'header.php';
 check_auth();
+
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+$person = null;
+if ($id > 0) {
+    $person = get_resume_by_id($id);
+}
 ?>
 
 <div class="form-wrapper">
@@ -11,8 +17,12 @@ check_auth();
         <a href="dashboard.php" class="back-link">← Volver al Panel de Consulta</a>
 
         <form id="resume-form" method="POST" enctype="multipart/form-data" action="api/submit_resume.php">
-
-            <h2>Registrar Hoja de Vida</h2>
+            <?php if ($id > 0): ?>
+                <input type="hidden" name="id" value="<?php echo $id; ?>">
+                <h2>Editar Hoja de Vida</h2>
+            <?php else: ?>
+                <h2>Registrar Hoja de Vida</h2>
+            <?php endif; ?>
 
             <!-- ========================= -->
             <!-- 1 INFORMACION PERSONAL -->
@@ -26,113 +36,109 @@ check_auth();
 
                     <div>
                         <label>Nombre completo</label>
-                        <input type="text" name="full_name">
+                        <input type="text" name="full_name" value="<?php echo htmlspecialchars($person['nombre'] ?? ''); ?>" <?php echo $id > 0 ? 'readonly style="background:#f9f9f9;"' : ''; ?>>
                     </div>
 
                     <div>
                         <label>Tipo documento</label>
-                        <select name="id_type">
+                        <select name="id_type" <?php echo $id > 0 ? 'disabled style="background:#f9f9f9;"' : ''; ?>>
                             <option value="">Seleccione</option>
-                            <option value="CC">Cédula</option>
-                            <option value="CE">Cédula extranjería</option>
-                            <option value="TI">Tarjeta identidad</option>
+                            <option value="CC" <?php echo ($person['tipo_documento'] ?? '') === 'CC' ? 'selected' : ''; ?>>Cédula</option>
+                            <option value="CE" <?php echo ($person['tipo_documento'] ?? '') === 'CE' ? 'selected' : ''; ?>>Cédula extranjería</option>
+                            <option value="TI" <?php echo ($person['tipo_documento'] ?? '') === 'TI' ? 'selected' : ''; ?>>Tarjeta identidad</option>
                         </select>
+                        <?php if ($id > 0): ?><input type="hidden" name="id_type" value="<?php echo $person['tipo_documento']; ?>"><?php endif; ?>
                     </div>
 
                     <div>
                         <label>Número documento</label>
-                        <input type="text" name="document_id">
+                        <input type="text" name="document_id" value="<?php echo htmlspecialchars($person['documento'] ?? ''); ?>" <?php echo $id > 0 ? 'readonly style="background:#f9f9f9;"' : ''; ?>>
                     </div>
 
                     <div>
-                        <label>Documento identidad (PDF)</label>
-                        <input type="file" name="id_file" accept=".pdf">
+                        <label>Documento identidad (PDF) <?php if (!empty($person['ruta_cedula'])): ?><a href="<?php echo htmlspecialchars($person['ruta_cedula']); ?>" target="_blank" style="font-size: 0.7rem; color: #1a73e8;">(Ver actual)</a><?php endif; ?></label>
+                        <?php if ($id == 0): ?>
+                            <input type="file" name="id_file" accept=".pdf">
+                        <?php endif; ?>
+                        <input type="hidden" name="old_id_file" value="<?php echo htmlspecialchars($person['ruta_cedula'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Fecha nacimiento</label>
-                        <input type="date" name="birth_date">
+                        <input type="date" name="birth_date" value="<?php echo htmlspecialchars($person['fecha_nacimiento'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>País nacimiento</label>
-                        <select name="birth_country" id="birth_country">
+                        <select name="birth_country" id="birth_country" <?php echo $id > 0 ? 'disabled style="background:#f9f9f9;"' : ''; ?>>
                             <option value="">Seleccione</option>
-                            <option value="Colombia">Colombia</option>
-                            <option value="Venezuela">Venezuela</option>
-                            <option value="Otro">Otro</option>
+                            <option value="Colombia" <?php echo ($person['pais_nacimiento'] ?? '') === 'Colombia' || (isset($person['departamento_nacimiento']) && !empty($person['departamento_nacimiento'])) ? 'selected' : ''; ?>>Colombia</option>
+                            <option value="Venezuela" <?php echo ($person['pais_nacimiento'] ?? '') === 'Venezuela' ? 'selected' : ''; ?>>Venezuela</option>
+                            <option value="Otro" <?php echo ($person['pais_nacimiento'] ?? '') === 'Otro' ? 'selected' : ''; ?>>Otro</option>
                         </select>
+                        <?php if ($id > 0): ?><input type="hidden" name="birth_country" value="<?php echo $person['pais_nacimiento']; ?>"><?php endif; ?>
                     </div>
 
                     <div>
                         <label>Departamento nacimiento</label>
-                        <select name="birth_department" id="birth_department">
+                        <select name="birth_department" id="birth_department" data-selected="<?php echo htmlspecialchars($person['departamento_nacimiento'] ?? ''); ?>" <?php echo $id > 0 ? 'disabled style="background:#f9f9f9;"' : ''; ?>>
                             <option value="">Seleccione</option>
                         </select>
+                        <?php if ($id > 0): ?><input type="hidden" name="birth_department" value="<?php echo $person['departamento_nacimiento']; ?>"><?php endif; ?>
                     </div>
 
                     <div>
                         <label>Municipio nacimiento</label>
-                        <select name="birth_city" id="birth_city">
+                        <select name="birth_city" id="birth_city" data-selected="<?php echo htmlspecialchars($person['municipio_nacimiento'] ?? ''); ?>" <?php echo $id > 0 ? 'disabled style="background:#f9f9f9;"' : ''; ?>>
                             <option value="">Seleccione</option>
                         </select>
+                        <?php if ($id > 0): ?><input type="hidden" name="birth_city" value="<?php echo $person['municipio_nacimiento']; ?>"><?php endif; ?>
                     </div>
 
                     <div>
                         <label>Departamento residencia</label>
-                        <select name="department" id="department">
+                        <select name="department" id="department" data-selected="<?php echo htmlspecialchars($person['departamento_residencia'] ?? ''); ?>" <?php echo $id > 0 ? 'disabled style="background:#f9f9f9;"' : ''; ?>>
                             <option value="">Seleccione</option>
                         </select>
+                        <?php if ($id > 0): ?><input type="hidden" name="department" value="<?php echo $person['departamento_residencia']; ?>"><?php endif; ?>
                     </div>
 
                     <div>
                         <label>Municipio residencia</label>
-                        <select name="city" id="city">
+                        <select name="city" id="city" data-selected="<?php echo htmlspecialchars($person['municipio_residencia'] ?? ''); ?>" <?php echo $id > 0 ? 'disabled style="background:#f9f9f9;"' : ''; ?>>
                             <option value="">Seleccione</option>
                         </select>
+                        <?php if ($id > 0): ?><input type="hidden" name="city" value="<?php echo $person['municipio_residencia']; ?>"><?php endif; ?>
                     </div>
 
                     <div>
                         <label>Teléfono</label>
-                        <input type="tel" name="phone">
+                        <input type="tel" name="phone" value="<?php echo htmlspecialchars($person['telefono'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Email</label>
-                        <input type="email" name="email">
+                        <input type="email" name="email" value="<?php echo htmlspecialchars($person['email'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Vereda / Barrio</label>
-                        <input type="text" name="vereda">
+                        <input type="text" name="vereda" value="<?php echo htmlspecialchars($person['vereda'] ?? ''); ?>" <?php echo $id > 0 ? 'readonly style="background:#f9f9f9;"' : ''; ?>>
                     </div>
 
                     <div>
                         <label>Foto perfil</label>
+                        <?php if (!empty($person['ruta_foto'])): ?>
+                            <img src="<?php echo htmlspecialchars($person['ruta_foto']); ?>" style="width: 100px; height: 100px; object-fit: cover; border-radius: 10px; display: block; margin-bottom: 5px; border: 2px solid #eee;">
+                        <?php endif; ?>
                         <input type="file" name="photo" accept="image/*">
+                        <input type="hidden" name="old_photo" value="<?php echo htmlspecialchars($person['ruta_foto'] ?? ''); ?>">
                     </div>
 
                 </div>
 
                 <label>Perfil profesional</label>
-                <textarea name="profile_description" rows="4"></textarea>
-
-            </div>
-
-
-            <!-- ========================= -->
-            <!-- 2 HABILIDADES -->
-            <!-- ========================= -->
-
-            <div class="form-section">
-
-                <h3>2. Habilidades</h3>
-
-                <p>Seleccione sus habilidades principales</p>
-
-                <div id="skills-mosaic" class="skills-mosaic"></div>
-
-                <input type="hidden" name="skills" id="skills-input">
+                <textarea name="profile_description" rows="4"><?php echo htmlspecialchars($person['descripcion'] ?? ($person['perfil_profesional'] ?? '')); ?></textarea>
 
             </div>
 
@@ -179,42 +185,42 @@ check_auth();
 
                     <div>
                         <label>Referencia personal nombre</label>
-                        <input type="text" name="ref_p1_name">
+                        <input type="text" name="ref_p1_name" value="<?php echo htmlspecialchars($person['referencias'][0]['nombre'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Teléfono</label>
-                        <input type="tel" name="ref_p1_phone">
+                        <input type="tel" name="ref_p1_phone" value="<?php echo htmlspecialchars($person['referencias'][0]['telefono'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Referencia personal nombre</label>
-                        <input type="text" name="ref_p2_name">
+                        <input type="text" name="ref_p2_name" value="<?php echo htmlspecialchars($person['referencias'][1]['nombre'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Teléfono</label>
-                        <input type="tel" name="ref_p2_phone">
+                        <input type="tel" name="ref_p2_phone" value="<?php echo htmlspecialchars($person['referencias'][1]['telefono'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Referencia familiar nombre</label>
-                        <input type="text" name="ref_f1_name">
+                        <input type="text" name="ref_f1_name" value="<?php echo htmlspecialchars($person['referencias'][2]['nombre'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Teléfono</label>
-                        <input type="tel" name="ref_f1_phone">
+                        <input type="tel" name="ref_f1_phone" value="<?php echo htmlspecialchars($person['referencias'][2]['telefono'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Referencia familiar nombre</label>
-                        <input type="text" name="ref_f2_name">
+                        <input type="text" name="ref_f2_name" value="<?php echo htmlspecialchars($person['referencias'][3]['nombre'] ?? ''); ?>">
                     </div>
 
                     <div>
                         <label>Teléfono</label>
-                        <input type="tel" name="ref_f2_phone">
+                        <input type="tel" name="ref_f2_phone" value="<?php echo htmlspecialchars($person['referencias'][3]['telefono'] ?? ''); ?>">
                     </div>
 
                 </div>
@@ -223,8 +229,12 @@ check_auth();
 
 
             <button type="submit" class="btn-submit-large">
-                Guardar Hoja de Vida
+                <?php echo $id > 0 ? 'Actualizar Hoja de Vida' : 'Guardar Hoja de Vida'; ?>
             </button>
+
+            <script>
+                window.personData = <?php echo json_encode($person); ?>;
+            </script>
 
         </form>
 
@@ -250,6 +260,9 @@ check_auth();
             <option>Especialización</option>
             <option>Maestría</option>
         </select>
+
+        <label>Título obtenido</label>
+        <input type="text" name="education_INDEX_title_obtained">
 
         <label>Institución</label>
         <input type="text" name="education_INDEX_institution">
@@ -314,24 +327,6 @@ check_auth();
 
 
 <style>
-    .skills-mosaic {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .skill-card {
-        border: 1px solid #ccc;
-        padding: 8px 12px;
-        border-radius: 20px;
-        cursor: pointer;
-    }
-
-    .skill-card.selected {
-        background: #2e7d32;
-        color: white;
-    }
-
     .dynamic-item {
         border: 1px solid #eee;
         padding: 15px;

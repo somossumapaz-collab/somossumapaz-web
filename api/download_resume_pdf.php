@@ -265,18 +265,7 @@ $references = $resume['referencias'] ?? [];
         </div>
         <?php endif; ?>
 
-        <?php if (!empty($skills)): ?>
-            <div class="section">
-                <div class="section-title">HABILIDADES</div>
-                <div class="skills-grid">
-                    <?php foreach ($skills as $s): ?>
-                        <div class="skill">
-                            <?php echo htmlspecialchars((string) ($s['habilidad'] ?? '')); ?>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        <?php endif; ?>
+
 
         <?php if (!empty($education)): ?>
             <div class="section">
@@ -296,6 +285,9 @@ $references = $resume['referencias'] ?? [];
                             <div class="item-sub">
                                 <?php echo htmlspecialchars((string) ($e['institucion'] ?? '')); ?>
                             </div>
+                            <?php if (empty($e['ruta_soporte'])): ?>
+                                <div style="font-size: 0.8rem; color: #d32f2f; font-style: italic;">No cuenta con soporte</div>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -323,6 +315,9 @@ $references = $resume['referencias'] ?? [];
                             <div class="item-desc">
                                 <?php echo nl2br(htmlspecialchars($ex['descripcion'] ?? '')); ?>
                             </div>
+                            <?php if (empty($ex['ruta_soporte'])): ?>
+                                <div style="font-size: 0.8rem; color: #d32f2f; font-style: italic;">No cuenta con soporte</div>
+                            <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -353,8 +348,8 @@ $references = $resume['referencias'] ?? [];
         <!-- Sección de Anexos y Soportes -->
         <?php 
         $has_anexos = !empty($personal['ruta_cedula']) || 
-                      !empty(array_filter($education, function($e) { return !empty($e['ruta_certificado']); })) || 
-                      !empty(array_filter($experience, function($ex) { return !empty($ex['ruta_experiencia']); }));
+                      !empty(array_filter($education, function($e) { return !empty($e['ruta_soporte']); })) || 
+                      !empty(array_filter($experience, function($ex) { return !empty($ex['ruta_soporte']); }));
         
         if ($has_anexos): 
         ?>
@@ -390,11 +385,11 @@ $references = $resume['referencias'] ?? [];
             render_soporte($personal['ruta_cedula'] ?? null, "DOCUMENTO DE IDENTIDAD");
 
             foreach ($education as $e) {
-                render_soporte($e['ruta_certificado'] ?? null, "CERTIFICADO ACADÉMICO: " . ($e['nivel_educacion'] ?? $e['titulo']));
+                render_soporte($e['ruta_soporte'] ?? null, "CERTIFICADO ACADÉMICO: " . ($e['nivel_educacion'] ?? $e['titulo']));
             }
 
             foreach ($experience as $ex) {
-                render_soporte($ex['ruta_experiencia'] ?? null, "CERTIFICADO LABORAL: " . ($ex['empresa'] . " - " . $ex['cargo']));
+                render_soporte($ex['ruta_soporte'] ?? null, "CERTIFICADO LABORAL: " . ($ex['empresa'] . " - " . $ex['cargo']));
             }
             ?>
         </div>

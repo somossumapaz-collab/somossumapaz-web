@@ -171,8 +171,8 @@ function get_complete_resume($documento)
 
 function ensure_directories()
 {
-    $base = __DIR__ . '/uploads/';
-    $subs = ['fotos_perfil', 'documentos_identidad', 'certificados_academicos', 'certificados_laborales'];
+    $base = __DIR__ . '/soportes/';
+    $subs = ['Personal', 'Educacion', 'Experiencia'];
     foreach ($subs as $sub) {
         $path = $base . $sub;
         if (!file_exists($path)) {
@@ -191,6 +191,8 @@ function save_resume_data($data, $files)
         ensure_directories();
         $conn->begin_transaction();
 
+        $persona_id = isset($data['id']) ? (int) $data['id'] : 0;
+
         $nombre = $data['full_name'] ?? ($data['nombre_completo'] ?? '');
         $id_type = $data['id_type'] ?? ($data['tipo_documento'] ?? '');
         $doc_id = $data['document_id'] ?? ($data['numero_documento'] ?? '');
@@ -200,55 +202,110 @@ function save_resume_data($data, $files)
         $tel = $data['phone'] ?? ($data['telefono'] ?? '');
         $mail = $data['email'] ?? ($data['email'] ?? '');
         $vereda = $data['vereda'] ?? '';
+        $profile = $data['profile_description'] ?? '';
+        $skills = $data['skills'] ?? '';
+        $birth_country = $data['birth_country'] ?? '';
+        $dept_res = $data['department'] ?? '';
+        $city_res = $data['city'] ?? '';
 
-        $sql = "INSERT INTO persona_datos_personales (
-            nombre, tipo_documento, documento, 
-            fecha_nacimiento, departamento_nacimiento, municipio_nacimiento, 
-            telefono, email, vereda
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        if ($persona_id > 0) {
+            $sql = "UPDATE persona_datos_personales SET 
+                nombre = ?, tipo_documento = ?, documento = ?, 
+                fecha_nacimiento = ?, departamento_nacimiento = ?, municipio_nacimiento = ?, 
+                telefono = ?, email = ?, vereda = ?, descripcion = ?, habilidades = ?,
+                pais_nacimiento = ?, departamento_residencia = ?, municipio_residencia = ?
+                WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param(
+                "ssssssssssssssi",
+                $nombre,
+                $id_type,
+                $doc_id,
+                $birth_date,
+                $birth_dept,
+                $birth_city,
+                $tel,
+                $mail,
+                $vereda,
+                $profile,
+                $skills,
+                $birth_country,
+                $dept_res,
+                $city_res,
+                $persona_id
+            );
+            $stmt->execute();
+        } else {
+            $sql = "INSERT INTO persona_datos_personales (
+                nombre, tipo_documento, documento, 
+                fecha_nacimiento, departamento_nacimiento, municipio_nacimiento, 
+                telefono, email, vereda, descripcion, habilidades,
+                pais_nacimiento, departamento_residencia, municipio_residencia
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        $stmt = $conn->prepare($sql);
-        if (!$stmt)
-            throw new Exception($conn->error);
+            $stmt = $conn->prepare($sql);
+            if (!$stmt)
+                throw new Exception($conn->error);
 
-        $stmt->bind_param(
-            "sssssssss",
-            $nombre,
-            $id_type,
-            $doc_id,
-            $birth_date,
-            $birth_dept,
-            $birth_city,
-            $tel,
-            $mail,
-            $vereda
-        );
-        $stmt->execute();
-        $persona_id = $conn->insert_id;
+            $stmt->bind_param(
+                "ssssssssssssss",
+                $nombre,
+                $id_type,
+                $doc_id,
+                $birth_date,
+                $birth_dept,
+                $birth_city,
+                $tel,
+                $mail,
+                $vereda,
+                $profile,
+                $skills,
+                $birth_country,
+                $dept_res,
+                $city_res
+            );
+            $stmt->execute();
+            $persona_id = $conn->insert_id;
+        }
 
         // Foto Perfil
         if (isset($files['photo']) && $files['photo']['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($files['photo']['name'], PATHINFO_EXTENSION));
-            $filename = "foto_" . $persona_id . "_" . time() . "." . $ext;
-            $target = __DIR__ . "/uploads/fotos_perfil/" . $filename;
+            $filename = "{$doc_id}_foto_{$persona_id}.{$ext}";
+            $target = __DIR__ . "/soportes/Personal/" . $filename;
             if (move_uploaded_file($files['photo']['tmp_name'], $target)) {
-                $db_path = "uploads/fotos_perfil/" . $filename;
+                $db_path = "soportes/Personal/" . $filename;
                 $stmt_upd = $conn->prepare("UPDATE persona_datos_personales SET ruta_foto = ? WHERE id = ?");
                 $stmt_upd->bind_param("si", $db_path, $persona_id);
                 $stmt_upd->execute();
             }
+        } elseif (!empty($data['old_photo'])) {
+            $stmt_upd = $conn->prepare("UPDATE persona_datos_personales SET ruta_foto = ? WHERE id = ?");
+            $stmt_upd->bind_param("si", $data['old_photo'], $persona_id);
+            $stmt_upd->execute();
         }
 
         // Documento Identidad
         if (isset($files['id_file']) && $files['id_file']['error'] === UPLOAD_ERR_OK) {
-            $filename = "doc_" . $persona_id . "_" . time() . ".pdf";
-            $target = __DIR__ . "/uploads/documentos_identidad/" . $filename;
+            $filename = "{$doc_id}_cedula_{$persona_id}.pdf";
+            $target = __DIR__ . "/soportes/Personal/" . $filename;
             if (move_uploaded_file($files['id_file']['tmp_name'], $target)) {
-                $db_path = "uploads/documentos_identidad/" . $filename;
+                $db_path = "soportes/Personal/" . $filename;
                 $stmt_upd = $conn->prepare("UPDATE persona_datos_personales SET ruta_cedula = ? WHERE id = ?");
                 $stmt_upd->bind_param("si", $db_path, $persona_id);
                 $stmt_upd->execute();
             }
+        } elseif (!empty($data['old_id_file'])) {
+            $stmt_upd = $conn->prepare("UPDATE persona_datos_personales SET ruta_cedula = ? WHERE id = ?");
+            $stmt_upd->bind_param("si", $data['old_id_file'], $persona_id);
+            $stmt_upd->execute();
+        }
+
+        // Clean dependent tables if update
+        if (isset($data['id'])) {
+            $conn->query("DELETE FROM persona_educacion WHERE persona_id = $persona_id");
+            $conn->query("DELETE FROM persona_experiencia WHERE persona_id = $persona_id");
+            $conn->query("DELETE FROM persona_referencia WHERE persona_id = $persona_id");
         }
 
         // Educación
@@ -256,25 +313,32 @@ function save_resume_data($data, $files)
         while (isset($data["education_{$i}_institution"]) || isset($data["edu_inst_{$i}"])) {
             $inst = $data["education_{$i}_institution"] ?? ($data["edu_inst_{$i}"] ?? '');
             $level = $data["education_{$i}_level"] ?? ($data["edu_level_{$i}"] ?? '');
+            $title_obtained = $data["education_{$i}_title_obtained"] ?? '';
             $start = ($data["education_{$i}_start_date"] ?? ($data["edu_start_{$i}"] ?? '')) ?: null;
             $end = ($data["education_{$i}_end_date"] ?? ($data["edu_end_{$i}"] ?? '')) ?: null;
 
             if ($inst) {
-                $stmt_edu = $conn->prepare("INSERT INTO persona_educacion (persona_id, institucion, nivel_educacion, titulo, fecha_inicio, fecha_fin) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt_edu->bind_param("isssss", $persona_id, $inst, $level, $level, $start, $end);
+                $stmt_edu = $conn->prepare("INSERT INTO persona_educacion (persona_id, institucion, nivel_educacion, titulo, titulo_obtenido, fecha_inicio, fecha_fin) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt_edu->bind_param("issssss", $persona_id, $inst, $level, $level, $title_obtained, $start, $end);
                 $stmt_edu->execute();
                 $edu_id = $conn->insert_id;
 
                 $file_key = isset($files["education_{$i}_file"]) ? "education_{$i}_file" : "edu_file_{$i}";
+                $old_file_key = "education_{$i}_old_file";
+
                 if (isset($files[$file_key]) && $files[$file_key]['error'] === UPLOAD_ERR_OK) {
-                    $filename = "edu_" . $edu_id . "_" . time() . ".pdf";
-                    $target = __DIR__ . "/uploads/certificados_academicos/" . $filename;
+                    $filename = "{$doc_id}_educacion_{$edu_id}.pdf";
+                    $target = __DIR__ . "/soportes/Educacion/" . $filename;
                     if (move_uploaded_file($files[$file_key]['tmp_name'], $target)) {
-                        $db_path = "uploads/certificados_academicos/" . $filename;
-                        $stmt_sup = $conn->prepare("UPDATE persona_educacion SET ruta_certificado = ? WHERE id = ?");
+                        $db_path = "soportes/Educacion/" . $filename;
+                        $stmt_sup = $conn->prepare("UPDATE persona_educacion SET ruta_soporte = ? WHERE id = ?");
                         $stmt_sup->bind_param("si", $db_path, $edu_id);
                         $stmt_sup->execute();
                     }
+                } elseif (!empty($data[$old_file_key])) {
+                    $stmt_sup = $conn->prepare("UPDATE persona_educacion SET ruta_soporte = ? WHERE id = ?");
+                    $stmt_sup->bind_param("si", $data[$old_file_key], $edu_id);
+                    $stmt_sup->execute();
                 }
             }
             $i++;
@@ -296,15 +360,21 @@ function save_resume_data($data, $files)
                 $exp_id = $conn->insert_id;
 
                 $file_key = isset($files["experience_{$j}_file"]) ? "experience_{$j}_file" : "exp_file_{$j}";
+                $old_file_key = "experience_{$j}_old_file";
+
                 if (isset($files[$file_key]) && $files[$file_key]['error'] === UPLOAD_ERR_OK) {
-                    $filename = "exp_" . $exp_id . "_" . time() . ".pdf";
-                    $target = __DIR__ . "/uploads/certificados_laborales/" . $filename;
+                    $filename = "{$doc_id}_experiencia_{$exp_id}.pdf";
+                    $target = __DIR__ . "/soportes/Experiencia/" . $filename;
                     if (move_uploaded_file($files[$file_key]['tmp_name'], $target)) {
-                        $db_path = "uploads/certificados_laborales/" . $filename;
-                        $stmt_sup = $conn->prepare("UPDATE persona_experiencia SET ruta_experiencia = ? WHERE id = ?");
+                        $db_path = "soportes/Experiencia/" . $filename;
+                        $stmt_sup = $conn->prepare("UPDATE persona_experiencia SET ruta_soporte = ? WHERE id = ?");
                         $stmt_sup->bind_param("si", $db_path, $exp_id);
                         $stmt_sup->execute();
                     }
+                } elseif (!empty($data[$old_file_key])) {
+                    $stmt_sup = $conn->prepare("UPDATE persona_experiencia SET ruta_soporte = ? WHERE id = ?");
+                    $stmt_sup->bind_param("si", $data[$old_file_key], $exp_id);
+                    $stmt_sup->execute();
                 }
             }
             $j++;
@@ -330,7 +400,8 @@ function save_resume_data($data, $files)
         $conn->commit();
         return ['success' => true, 'id' => (int) $persona_id];
     } catch (Exception $e) {
-        $conn->rollback();
+        if ($conn)
+            $conn->rollback();
         return ['success' => false, 'error' => $e->getMessage()];
     }
 }
