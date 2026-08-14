@@ -21,6 +21,31 @@ document.addEventListener('DOMContentLoaded', () => {
         "Valle del Cauca": ["Cali", "Palmira", "Buenaventura"]
     };
 
+    function setupSelectOtherToggle(selectId, otherInputId, fieldName) {
+        const selectEl = document.getElementById(selectId);
+        const otherInput = document.getElementById(otherInputId);
+        if (!selectEl || !otherInput) return;
+
+        function updateToggle() {
+            if (selectEl.value === 'Otro') {
+                otherInput.style.display = 'block';
+                if (!selectEl.disabled) {
+                    otherInput.name = fieldName;
+                    selectEl.removeAttribute('name');
+                }
+            } else {
+                otherInput.style.display = 'none';
+                if (!selectEl.disabled) {
+                    selectEl.name = fieldName;
+                    otherInput.removeAttribute('name');
+                }
+            }
+        }
+
+        selectEl.addEventListener('change', updateToggle);
+        updateToggle();
+    }
+
     function populateDepartments(selectId) {
         const select = document.getElementById(selectId);
         if (!select) return;
@@ -42,33 +67,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function handleDeptChange(deptSelectId, citySelectId) {
-
         const deptSelect = document.getElementById(deptSelectId);
         const citySelect = document.getElementById(citySelectId);
+        const otherInput = document.getElementById(citySelectId + '_other');
 
         if (!deptSelect || !citySelect) return;
 
         deptSelect.addEventListener('change', () => {
-
             const dept = deptSelect.value;
-
             citySelect.innerHTML = '<option value="">Seleccione Municipio...</option>';
 
-            const selectedCity = citySelect.getAttribute('data-selected');
-            if (cities[dept]) {
+            const selectedCity = citySelect.getAttribute('data-selected') || '';
+            let matched = false;
 
+            if (cities[dept]) {
                 cities[dept].sort().forEach(city => {
                     const opt = document.createElement('option');
                     opt.value = city;
                     opt.textContent = city;
-                    if (city === selectedCity) opt.selected = true;
+                    if (city === selectedCity) {
+                        opt.selected = true;
+                        matched = true;
+                    }
                     citySelect.appendChild(opt);
                 });
-
             }
+
+            const optOtro = document.createElement('option');
+            optOtro.value = "Otro";
+            optOtro.textContent = "Otro (Escribir...)";
+            citySelect.appendChild(optOtro);
+
+            if (selectedCity && !matched) {
+                optOtro.selected = true;
+                if (otherInput) {
+                    otherInput.value = selectedCity;
+                }
+            }
+
+            citySelect.dispatchEvent(new Event('change'));
         });
 
-        // Trigger change if department is already selected
+        setupSelectOtherToggle(citySelectId, citySelectId + '_other', citySelectId);
+
         if (deptSelect.value) {
             deptSelect.dispatchEvent(new Event('change'));
         }
@@ -79,6 +120,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     handleDeptChange('birth_department', 'birth_city');
     handleDeptChange('department', 'city');
+
+    setupSelectOtherToggle('vereda', 'vereda_other', 'vereda');
+    setupSelectOtherToggle('birth_country', 'birth_country_other', 'birth_country');
 
 
     /* ===================================
@@ -211,36 +255,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.personData.formacion.forEach(edu => {
                     const item = addItem("education");
                     const idx = item.querySelector('[name^="education_"]').name.split('_')[1];
-                    item.querySelector(`[name="education_${idx}_level"]`).value = edu.nivel_educacion || '';
-                    item.querySelector(`[name="education_${idx}_title_obtained"]`).value = edu.titulo_obtenido || '';
-                    item.querySelector(`[name="education_${idx}_institution"]`).value = edu.institucion || '';
-                    item.querySelector(`[name="education_${idx}_start_date"]`).value = edu.fecha_inicio || '';
-                    item.querySelector(`[name="education_${idx}_end_date"]`).value = edu.fecha_fin || '';
+                    if (item.querySelector(`[name="education_${idx}_level"]`)) item.querySelector(`[name="education_${idx}_level"]`).value = edu.nivel_educacion || '';
+                    if (item.querySelector(`[name="education_${idx}_title_obtained"]`)) item.querySelector(`[name="education_${idx}_title_obtained"]`).value = edu.titulo_obtenido || '';
+                    if (item.querySelector(`[name="education_${idx}_institution"]`)) item.querySelector(`[name="education_${idx}_institution"]`).value = edu.institucion || '';
+                    if (item.querySelector(`[name="education_${idx}_start_date"]`)) item.querySelector(`[name="education_${idx}_start_date"]`).value = edu.fecha_inicio || '';
+                    if (item.querySelector(`[name="education_${idx}_end_date"]`)) item.querySelector(`[name="education_${idx}_end_date"]`).value = edu.fecha_fin || '';
 
-                    const fileLabel = item.querySelector('label:last-of-type');
-                    if (edu.ruta_soporte) {
+                    const fileCard = item.querySelector('.file-upload-card') || item.querySelector('label:last-of-type');
+                    if (edu.ruta_soporte && fileCard) {
                         const link = document.createElement('a');
                         link.href = edu.ruta_soporte;
                         link.target = "_blank";
-                        link.style.display = "block";
-                        link.style.fontSize = "0.7rem";
-                        link.style.color = "#1a73e8";
-                        link.innerText = "(Ver certificado actual)";
-                        fileLabel.after(link);
+                        link.className = "file-current-badge";
+                        link.innerHTML = '<i class="fas fa-external-link-alt"></i> (Ver certificado actual)';
+                        fileCard.appendChild(link);
 
                         const hiddenFile = document.createElement('input');
                         hiddenFile.type = "hidden";
                         hiddenFile.name = `education_${idx}_old_file`;
                         hiddenFile.value = edu.ruta_soporte;
-                        link.after(hiddenFile);
-                    } else {
-                        const span = document.createElement('span');
-                        span.style.display = "block";
-                        span.style.fontSize = "0.7rem";
-                        span.style.color = "#666";
-                        span.style.fontStyle = "italic";
-                        span.innerText = "No cuenta con soporte";
-                        fileLabel.after(span);
+                        fileCard.appendChild(hiddenFile);
                     }
                 });
             }
@@ -249,36 +283,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.personData.experiencia.forEach(exp => {
                     const item = addItem("experience");
                     const idx = item.querySelector('[name^="experience_"]').name.split('_')[1];
-                    item.querySelector(`[name="experience_${idx}_company"]`).value = exp.empresa || '';
-                    item.querySelector(`[name="experience_${idx}_role"]`).value = exp.cargo || '';
-                    item.querySelector(`[name="experience_${idx}_description"]`).value = exp.descripcion || '';
-                    item.querySelector(`[name="experience_${idx}_start_date"]`).value = exp.fecha_inicio || '';
-                    item.querySelector(`[name="experience_${idx}_end_date"]`).value = exp.fecha_fin || '';
+                    if (item.querySelector(`[name="experience_${idx}_company"]`)) item.querySelector(`[name="experience_${idx}_company"]`).value = exp.empresa || '';
+                    if (item.querySelector(`[name="experience_${idx}_role"]`)) item.querySelector(`[name="experience_${idx}_role"]`).value = exp.cargo || '';
+                    if (item.querySelector(`[name="experience_${idx}_description"]`)) item.querySelector(`[name="experience_${idx}_description"]`).value = exp.descripcion || '';
+                    if (item.querySelector(`[name="experience_${idx}_start_date"]`)) item.querySelector(`[name="experience_${idx}_start_date"]`).value = exp.fecha_inicio || '';
+                    if (item.querySelector(`[name="experience_${idx}_end_date"]`)) item.querySelector(`[name="experience_${idx}_end_date"]`).value = exp.fecha_fin || '';
 
-                    const fileLabel = item.querySelector('label:last-of-type');
-                    if (exp.ruta_soporte) {
+                    const fileCard = item.querySelector('.file-upload-card') || item.querySelector('label:last-of-type');
+                    if (exp.ruta_soporte && fileCard) {
                         const link = document.createElement('a');
                         link.href = exp.ruta_soporte;
                         link.target = "_blank";
-                        link.style.display = "block";
-                        link.style.fontSize = "0.7rem";
-                        link.style.color = "#1a73e8";
-                        link.innerText = "(Ver certificado actual)";
-                        fileLabel.after(link);
+                        link.className = "file-current-badge";
+                        link.innerHTML = '<i class="fas fa-external-link-alt"></i> (Ver certificado actual)';
+                        fileCard.appendChild(link);
 
                         const hiddenFile = document.createElement('input');
                         hiddenFile.type = "hidden";
                         hiddenFile.name = `experience_${idx}_old_file`;
                         hiddenFile.value = exp.ruta_soporte;
-                        link.after(hiddenFile);
-                    } else {
-                        const span = document.createElement('span');
-                        span.style.display = "block";
-                        span.style.fontSize = "0.7rem";
-                        span.style.color = "#666";
-                        span.style.fontStyle = "italic";
-                        span.innerText = "No cuenta con soporte";
-                        fileLabel.after(span);
+                        fileCard.appendChild(hiddenFile);
                     }
                 });
             }
@@ -290,80 +314,48 @@ document.addEventListener('DOMContentLoaded', () => {
         =================================== */
 
         resumeForm.addEventListener('submit', async (e) => {
-
             e.preventDefault();
 
-            const debugBox = document.createElement("div");
-            debugBox.style.background = "#fff3cd";
-            debugBox.style.border = "1px solid #ffc107";
-            debugBox.style.padding = "10px";
-            debugBox.style.margin = "10px";
-            debugBox.style.fontSize = "14px";
-            debugBox.innerHTML = "<b>Debug envío formulario:</b><br>";
-            document.body.prepend(debugBox);
+            const btn = resumeForm.querySelector('button[type="submit"]');
+            if (!btn) return;
+
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando Hoja de Vida en la base de datos...';
+            btn.disabled = true;
 
             try {
-
-                const btn = resumeForm.querySelector('button[type="submit"]');
-
-                if (!btn) {
-                    debugBox.innerHTML += "❌ No se encontró botón submit<br>";
-                    return;
-                }
-
-                const originalText = btn.innerText;
-                btn.innerText = "Guardando...";
-                btn.disabled = true;
-
                 const formData = new FormData(resumeForm);
-
-                debugBox.innerHTML += "✔ FormData creado<br>";
-
-                for (let pair of formData.entries()) {
-                    debugBox.innerHTML += pair[0] + " = " + pair[1] + "<br>";
-                }
-
                 const response = await fetch('api/submit_resume.php', {
                     method: 'POST',
                     body: formData
                 });
 
-                debugBox.innerHTML += "✔ Respuesta recibida<br>";
-
                 const text = await response.text();
-
-                debugBox.innerHTML += "<b>Respuesta servidor:</b><br>" + text;
-
+                let result;
                 try {
-
-                    const result = JSON.parse(text);
-
-                    if (result.success) {
-                        alert("Hoja de vida registrada con éxito. Se abrirá la vista de impresión.");
-                        window.location.href = "api/download_resume_pdf.php?id=" + result.id;
-                    } else {
-                        alert("Error servidor: " + result.error);
-                    }
-
+                    result = JSON.parse(text);
                 } catch (jsonError) {
-
-                    debugBox.innerHTML += "<br><b>⚠ Error parseando JSON:</b><br>" + jsonError;
-
+                    console.error("Error parseando respuesta JSON:", text);
+                    alert("Error en la respuesta del servidor: " + text);
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                    return;
                 }
 
-                btn.innerText = originalText;
-                btn.disabled = false;
-
+                if (result.success) {
+                    alert("¡Hoja de vida guardada con éxito en la base de datos! Serás redirigido al tablero de consulta.");
+                    window.location.href = "dashboard.php";
+                } else {
+                    alert("Error al guardar en base de datos: " + (result.error || "Ocurrió un error inesperado."));
+                    btn.innerHTML = originalHTML;
+                    btn.disabled = false;
+                }
             } catch (error) {
-
-                console.error(error);
-
-                debugBox.innerHTML += "<br><b>❌ Error JS:</b><br>" + error;
-
-                alert("Error detectado. Revisa el recuadro amarillo arriba.");
-
+                console.error("Error en la petición:", error);
+                alert("Error de conexión al intentar guardar la hoja de vida.");
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
             }
-
         });
 
     }
@@ -420,13 +412,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             renderFilteredResumes(result.data);
 
-            ['filterNombre', 'filterVereda', 'filterEducacion'].forEach(id => {
+            ['filterNombre', 'filterVereda', 'filterEducacion', 'filterCompletitud'].forEach(id => {
                 const el = document.getElementById(id);
-                if (el) el.addEventListener('input', applyFilters);
+                if (el) {
+                    el.addEventListener('input', applyFilters);
+                    el.addEventListener('change', applyFilters);
+                }
             });
         } catch (e) {
             console.error("Error loading resumes:", e);
-            tableBody.innerHTML = '<tr><td colspan="6">Error cargando datos</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="9">Error cargando datos</td></tr>';
         }
     }
 
@@ -434,13 +429,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const nombreVal = (document.getElementById('filterNombre')?.value || "").toLowerCase();
         const veredaVal = document.getElementById('filterVereda')?.value || "";
         const eduVal = document.getElementById('filterEducacion')?.value || "";
+        const compVal = document.getElementById('filterCompletitud')?.value || "";
 
-        const filtered = window.allResumes.filter(r => {
+        const filtered = (window.allResumes || []).filter(r => {
             const matchNombre = (r.nombre || "").toLowerCase().includes(nombreVal);
             const matchVereda = veredaVal === "" || (r.vereda || "") === veredaVal;
             const matchEdu = eduVal === "" || (r.niveles_educacion || "").includes(eduVal);
-            return matchNombre && matchVereda && matchEdu;
+            let matchComp = true;
+            if (compVal === 'completo') {
+                matchComp = (r.completitud || 0) === 100;
+            } else if (compVal === 'incompleto') {
+                matchComp = (r.completitud || 0) < 100;
+            }
+            return matchNombre && matchVereda && matchEdu && matchComp;
         });
+        window.filteredResumes = filtered;
         renderFilteredResumes(filtered);
     }
 
@@ -448,22 +451,66 @@ document.addEventListener('DOMContentLoaded', () => {
         const tableBody = document.getElementById('resumeTableBody');
         if (!tableBody) return;
         
-        const countEl = document.getElementById('total-resumes-count');
-        if (countEl) countEl.innerText = data.length;
+        const countTotal = document.getElementById('total-resumes-count');
+        const countComplete = document.getElementById('complete-resumes-count');
+        const countIncomplete = document.getElementById('incomplete-resumes-count');
+
+        let completeCount = 0;
+        let incompleteCount = 0;
+
+        (window.allResumes || data).forEach(r => {
+            if ((r.completitud || 0) === 100) {
+                completeCount++;
+            } else {
+                incompleteCount++;
+            }
+        });
+
+        if (countTotal) countTotal.innerText = data.length;
+        if (countComplete) countComplete.innerText = completeCount;
+        if (countIncomplete) countIncomplete.innerText = incompleteCount;
+
+        if (!data || data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#666;">No se encontraron hojas de vida para este criterio.</td></tr>';
+            return;
+        }
 
         tableBody.innerHTML = "";
         data.forEach(resume => {
+            const pct = resume.completitud || 0;
+            let color = '#dc2626';
+            if (pct >= 90) {
+                color = '#16a34a';
+            } else if (pct >= 60) {
+                color = '#d97706';
+            }
+
+            const completitudHtml = `
+                <div style="min-width: 140px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span style="font-weight: 700; font-size: 0.85rem; color: ${color};">${pct}%</span>
+                        ${pct === 100 ? '<span style="font-size:0.7rem; background:#dcfce7; color:#15803d; padding:2px 6px; border-radius:10px; font-weight:bold;"><i class="fas fa-check"></i> OK</span>' : ''}
+                    </div>
+                    <div style="width: 100%; background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                        <div style="width: ${pct}%; background: ${color}; height: 100%; transition: width 0.4s ease;"></div>
+                    </div>
+                    ${resume.faltantes ? `<div style="font-size: 0.72rem; color: #64748b; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="Falta: ${resume.faltantes}"><i class="fas fa-info-circle"></i> Falta: ${resume.faltantes}</div>` : ''}
+                </div>
+            `;
+
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.nombre || ""}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee; font-weight: 600;">${resume.nombre || ""}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.documento || ""}</td>
+                <td style="padding: 15px; border-bottom: 1px solid #eee;">${completitudHtml}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.vereda || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.niveles_educacion || "No registrado"}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee; font-weight: bold; color: var(--secondary-color);">${resume.total_experiencia || "0"}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.telefono || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee;">${resume.email || ""}</td>
                 <td style="padding: 15px; border-bottom: 1px solid #eee; display: flex; gap: 5px;">
-                    <a href="descargar_cv.php?id=${resume.id}" target="_blank" class="btn-register" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Ver</a>
-                    <a href="resume_form.php?id=${resume.id}" class="btn-login" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none; background: var(--secondary-color);">Editar</a>
+                    <a href="descargar_cv.php?id=${resume.id}" target="_blank" class="btn-register" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none;" title="Ver PDF"><i class="fas fa-eye"></i> Ver</a>
+                    <a href="resume_form.php?id=${resume.id}" class="btn-login" style="padding: 6px 12px; font-size: 0.8rem; text-decoration: none; background: var(--secondary-color); color: white;" title="Editar y completar perfil"><i class="fas fa-edit"></i> Editar</a>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -473,6 +520,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('resumeTableBody')) {
         loadResumes();
     }
+
+    window.exportTableToExcel = function() {
+        const dataToExport = window.filteredResumes || window.allResumes;
+        if (!dataToExport || dataToExport.length === 0) {
+            alert("No hay datos para exportar.");
+            return;
+        }
+
+        let table = '<table border="1"><tr><th>Nombre</th><th>Cédula</th><th>Fecha de Nacimiento</th><th>Vereda</th><th>Nivel Educativo</th><th>Exp. (Años)</th><th>Telefono</th><th>Email</th></tr>';
+        dataToExport.forEach(r => {
+            table += `<tr>
+                <td>${r.nombre || ""}</td>
+                <td>${r.documento || ""}</td>
+                <td>${r.fecha_nacimiento || ""}</td>
+                <td>${r.vereda || ""}</td>
+                <td>${r.niveles_educacion || "No registrado"}</td>
+                <td>${r.total_experiencia || "0"}</td>
+                <td>${r.telefono || ""}</td>
+                <td>${r.email || ""}</td>
+            </tr>`;
+        });
+        table += '</table>';
+
+        const blob = new Blob(['\ufeff', table], { type: 'application/vnd.ms-excel' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "Resultados_Filtro.xls");
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
 });
 

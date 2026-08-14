@@ -224,15 +224,19 @@ if (session_status() === PHP_SESSION_NONE) {
         </a>
         <ul class="nav-links">
             <?php if (isset($_SESSION['user_id'])): ?>
-                <li><a href="dashboard.php" style="color:var(--secondary-color); font-weight:bold;">Tablero</a></li>
+                <li><a href="dashboard.php" style="color:var(--secondary-color); font-weight:bold;"><i class="fas fa-search"></i> Tablero Consulta</a></li>
+                <li><a href="resume_form.php" style="color:var(--primary-color); font-weight:bold;"><i class="fas fa-file-signature"></i> Ingresar Hoja de Vida</a></li>
             <?php endif; ?>
         </ul>
         <div class="nav-auth">
             <?php if (isset($_SESSION['user_id'])): ?>
+                <a href="resume_form.php" class="btn-register" style="margin-right: 10px; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-plus-circle"></i> Ingresar Hoja de Vida
+                </a>
                 <span>Hola, <strong>
                         <?php echo htmlspecialchars($_SESSION['usuario'] ?? 'Usuario'); ?>
                     </strong></span>
-                <a href="api/logout.php" class="btn-login">Cerrar Sesión</a>
+                <a href="api/logout.php" class="btn-login" style="margin-left: 8px;">Cerrar Sesión</a>
             <?php else: ?>
                 <a href="javascript:void(0)" class="btn-login" onclick="toggleLoginDrawer()">Login</a>
             <?php endif; ?>

@@ -23,13 +23,13 @@ check_auth();
         </div>
     </a>
 
-    <!-- Opción 2: Inscribir hoja de vida -->
+    <!-- Opción 2: Ingresar hoja de vida -->
     <a href="resume_form.php" style="text-decoration: none; color: inherit;">
         <div
-            style="background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; transition: transform 0.3s; border-bottom: 5px solid var(--secondary-color);">
+            style="background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; transition: transform 0.3s; border-bottom: 5px solid var(--primary-color);">
             <i class="fas fa-file-signature fa-3x" style="color: var(--primary-color); margin-bottom: 20px;"></i>
-            <h3 style="color: var(--primary-color);">Inscribir hoja de vida</h3>
-            <p style="color: #666;">Registra una nueva hoja de vida con todos tus soportes y experiencia.</p>
+            <h3 style="color: var(--primary-color);">Ingresar Hoja de Vida</h3>
+            <p style="color: #666;">Registra una nueva hoja de vida con todos tus soportes, fotos y experiencia laboral.</p>
         </div>
     </a>
 

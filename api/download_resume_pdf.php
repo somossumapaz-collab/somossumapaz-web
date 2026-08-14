@@ -256,11 +256,14 @@ $references = $resume['referencias'] ?? [];
             </div>
         </div>
 
-        <?php if (!empty($personal['perfil_profesional'])): ?>
+        <?php 
+        $perfil = $personal['descripcion'] ?? ($personal['perfil_profesional'] ?? '');
+        if (!empty($perfil)): 
+        ?>
         <div class="section">
             <div class="section-title">PERFIL PROFESIONAL</div>
             <div class="section-body">
-                <?php echo nl2br(htmlspecialchars($personal['perfil_profesional'])); ?>
+                <?php echo nl2br(htmlspecialchars($perfil)); ?>
             </div>
         </div>
         <?php endif; ?>
@@ -275,7 +278,14 @@ $references = $resume['referencias'] ?? [];
                         <div class="item">
                             <div class="item-header">
                                 <span>
-                                    <?php echo htmlspecialchars((string) ($e['nivel_educacion'] ?? $e['titulo'] ?? '')); ?>
+                                    <?php echo htmlspecialchars((string) ($e['nivel_educacion'] ?? '')); ?>
+                                    <?php 
+                                    $titulo_mostrar = $e['titulo_obtenido'] ?? '';
+                                    if (empty($titulo_mostrar) && !empty($e['titulo']) && ($e['titulo'] ?? '') !== ($e['nivel_educacion'] ?? '')) {
+                                        $titulo_mostrar = $e['titulo'];
+                                    }
+                                    echo !empty($titulo_mostrar) ? " - " . htmlspecialchars($titulo_mostrar) : ""; 
+                                    ?>
                                 </span>
                                 <span>
                                     <?php 

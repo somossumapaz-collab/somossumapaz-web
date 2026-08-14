@@ -96,10 +96,16 @@ function get_all_resumes()
     if (!$conn) {
         throw new Exception("No se pudo conectar a la base de datos.");
     }
-    $sql = "SELECT p.id, p.nombre, p.email, p.telefono, p.vereda, 
+    $sql = "SELECT p.id, p.nombre, p.tipo_documento, p.documento, p.fecha_nacimiento, p.email, p.telefono, p.vereda, 
+            p.descripcion, p.ruta_foto, p.ruta_cedula,
             (SELECT GROUP_CONCAT(DISTINCT nivel_educacion SEPARATOR ', ') 
              FROM persona_educacion 
              WHERE persona_id = p.id) as niveles_educacion,
+            (SELECT COUNT(*) FROM persona_educacion WHERE persona_id = p.id) as count_edu,
+            (SELECT COUNT(*) FROM persona_educacion WHERE persona_id = p.id AND ruta_soporte IS NOT NULL AND CHAR_LENGTH(TRIM(ruta_soporte)) > 0) as count_edu_soporte,
+            (SELECT COUNT(*) FROM persona_experiencia WHERE persona_id = p.id) as count_exp,
+            (SELECT COUNT(*) FROM persona_experiencia WHERE persona_id = p.id AND ruta_soporte IS NOT NULL AND CHAR_LENGTH(TRIM(ruta_soporte)) > 0) as count_exp_soporte,
+            (SELECT COUNT(*) FROM persona_referencia WHERE persona_id = p.id) as count_ref,
             (SELECT ROUND(SUM(CASE 
                 WHEN fecha_fin > fecha_inicio AND fecha_fin > '1900-01-01' AND fecha_fin < '2900-01-01'
                 THEN TIMESTAMPDIFF(DAY, fecha_inicio, fecha_fin) 
@@ -114,7 +120,69 @@ function get_all_resumes()
     if (!$result) {
         throw new Exception("Error en la consulta: " . $conn->error);
     }
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $resumes = $result->fetch_all(MYSQLI_ASSOC);
+
+    foreach ($resumes as &$r) {
+        $score = 0;
+        $faltantes = [];
+
+        if (!empty(trim($r['nombre'] ?? ''))) $score += 5;
+        if (!empty(trim($r['documento'] ?? '')) && !empty(trim($r['tipo_documento'] ?? ''))) $score += 5;
+        if (!empty(trim($r['fecha_nacimiento'] ?? ''))) $score += 5;
+        if (!empty(trim($r['telefono'] ?? '')) && !empty(trim($r['email'] ?? ''))) $score += 5;
+        if (!empty(trim($r['vereda'] ?? ''))) $score += 5;
+
+        if (!empty(trim($r['descripcion'] ?? ''))) {
+            $score += 10;
+        } else {
+            $faltantes[] = "Perfil profesional";
+        }
+
+        if (!empty(trim($r['ruta_foto'] ?? ''))) {
+            $score += 10;
+        } else {
+            $faltantes[] = "Foto de perfil";
+        }
+
+        if (!empty(trim($r['ruta_cedula'] ?? ''))) {
+            $score += 15;
+        } else {
+            $faltantes[] = "Documento cédula";
+        }
+
+        if ($r['count_edu'] > 0) {
+            $score += 10;
+            if ($r['count_edu_soporte'] > 0) {
+                $score += 10;
+            } else {
+                $faltantes[] = "Soporte educativo";
+            }
+        } else {
+            $faltantes[] = "Estudios académicos";
+        }
+
+        if ($r['count_exp'] > 0) {
+            $score += 5;
+            if ($r['count_exp_soporte'] > 0) {
+                $score += 5;
+            } else {
+                $faltantes[] = "Soporte laboral";
+            }
+        } else {
+            $faltantes[] = "Experiencia laboral";
+        }
+
+        if ($r['count_ref'] > 0) {
+            $score += 10;
+        } else {
+            $faltantes[] = "Referencias";
+        }
+
+        $r['completitud'] = min(100, $score);
+        $r['faltantes'] = implode(', ', $faltantes);
+    }
+
+    return $resumes;
 }
 
 function get_resume_by_id($id)
@@ -287,7 +355,8 @@ function save_resume_data($data, $files)
 
         // Documento Identidad
         if (isset($files['id_file']) && $files['id_file']['error'] === UPLOAD_ERR_OK) {
-            $filename = "{$doc_id}_cedula_{$persona_id}.pdf";
+            $ext = strtolower(pathinfo($files['id_file']['name'], PATHINFO_EXTENSION)) ?: 'pdf';
+            $filename = "{$doc_id}_cedula_{$persona_id}.{$ext}";
             $target = __DIR__ . "/soportes/Personal/" . $filename;
             if (move_uploaded_file($files['id_file']['tmp_name'], $target)) {
                 $db_path = "soportes/Personal/" . $filename;
@@ -327,7 +396,8 @@ function save_resume_data($data, $files)
                 $old_file_key = "education_{$i}_old_file";
 
                 if (isset($files[$file_key]) && $files[$file_key]['error'] === UPLOAD_ERR_OK) {
-                    $filename = "{$doc_id}_educacion_{$edu_id}.pdf";
+                    $ext = strtolower(pathinfo($files[$file_key]['name'], PATHINFO_EXTENSION)) ?: 'pdf';
+                    $filename = "{$doc_id}_educacion_{$edu_id}.{$ext}";
                     $target = __DIR__ . "/soportes/Educacion/" . $filename;
                     if (move_uploaded_file($files[$file_key]['tmp_name'], $target)) {
                         $db_path = "soportes/Educacion/" . $filename;
@@ -363,7 +433,8 @@ function save_resume_data($data, $files)
                 $old_file_key = "experience_{$j}_old_file";
 
                 if (isset($files[$file_key]) && $files[$file_key]['error'] === UPLOAD_ERR_OK) {
-                    $filename = "{$doc_id}_experiencia_{$exp_id}.pdf";
+                    $ext = strtolower(pathinfo($files[$file_key]['name'], PATHINFO_EXTENSION)) ?: 'pdf';
+                    $filename = "{$doc_id}_experiencia_{$exp_id}.{$ext}";
                     $target = __DIR__ . "/soportes/Experiencia/" . $filename;
                     if (move_uploaded_file($files[$file_key]['tmp_name'], $target)) {
                         $db_path = "soportes/Experiencia/" . $filename;
