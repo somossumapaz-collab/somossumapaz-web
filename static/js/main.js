@@ -528,11 +528,13 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let table = '<table border="1"><tr><th>Nombre</th><th>Cédula</th><th>Fecha de Nacimiento</th><th>Vereda</th><th>Nivel Educativo</th><th>Exp. (Años)</th><th>Telefono</th><th>Email</th></tr>';
+        let table = '<table border="1"><tr><th>Nombre</th><th>Cédula</th><th>Completitud (%)</th><th>Lo Faltante</th><th>Fecha de Nacimiento</th><th>Vereda</th><th>Nivel Educativo</th><th>Exp. (Años)</th><th>Telefono</th><th>Email</th></tr>';
         dataToExport.forEach(r => {
             table += `<tr>
                 <td>${r.nombre || ""}</td>
                 <td>${r.documento || ""}</td>
+                <td>${r.completitud || 0}%</td>
+                <td>${r.faltantes || "Ninguno"}</td>
                 <td>${r.fecha_nacimiento || ""}</td>
                 <td>${r.vereda || ""}</td>
                 <td>${r.niveles_educacion || "No registrado"}</td>

@@ -65,11 +65,17 @@ def main():
 
     # 3. Fetch personas
     cursor.execute('''
-        SELECT id, nombre, tipo_documento, documento, fecha_nacimiento, 
-               telefono, email, vereda, municipio_residencia, departamento_residencia,
-               municipio_nacimiento, departamento_nacimiento, pais_nacimiento
-        FROM persona_datos_personales
-        ORDER BY id ASC
+        SELECT p.id, p.nombre, p.tipo_documento, p.documento, p.fecha_nacimiento, 
+               p.telefono, p.email, p.vereda, p.municipio_residencia, p.departamento_residencia,
+               p.municipio_nacimiento, p.departamento_nacimiento, p.pais_nacimiento,
+               p.descripcion, p.ruta_foto, p.ruta_cedula,
+               (SELECT COUNT(*) FROM persona_educacion WHERE persona_id = p.id) as count_edu,
+               (SELECT COUNT(*) FROM persona_educacion WHERE persona_id = p.id AND ruta_soporte IS NOT NULL AND CHAR_LENGTH(TRIM(ruta_soporte)) > 0) as count_edu_soporte,
+               (SELECT COUNT(*) FROM persona_experiencia WHERE persona_id = p.id) as count_exp,
+               (SELECT COUNT(*) FROM persona_experiencia WHERE persona_id = p.id AND ruta_soporte IS NOT NULL AND CHAR_LENGTH(TRIM(ruta_soporte)) > 0) as count_exp_soporte,
+               (SELECT COUNT(*) FROM persona_referencia WHERE persona_id = p.id) as count_ref
+        FROM persona_datos_personales p
+        ORDER BY p.id ASC
     ''')
 
     rows_data = []
@@ -86,6 +92,14 @@ def main():
         vereda = decode_bytes(r[7]) or 'Sin especificación'
         muni_res = decode_bytes(r[8]) or 'Sumapaz'
         dept_res = decode_bytes(r[9]) or 'Bogotá D.C.'
+        descripcion = decode_bytes(r[13])
+        ruta_foto = decode_bytes(r[14])
+        ruta_cedula = decode_bytes(r[15])
+        count_edu = r[16] or 0
+        count_edu_soporte = r[17] or 0
+        count_exp = r[18] or 0
+        count_exp_soporte = r[19] or 0
+        count_ref = r[20] or 0
 
         # Calculate Age & Birth Date format
         age = ''
@@ -119,12 +133,65 @@ def main():
         nivel_edu = ', '.join(ed_info['niveles']) if ed_info['niveles'] else 'Sin registro'
         titulo_edu = ', '.join(ed_info['titulos']) if ed_info['titulos'] else 'N/A'
 
+        # Completitud y Faltantes
+        score = 0
+        faltantes = []
+
+        if nombre: score += 5
+        if doc and tipo_doc: score += 5
+        if fn_str: score += 5
+        if tel and email: score += 5
+        if vereda: score += 5
+
+        if descripcion:
+            score += 10
+        else:
+            faltantes.append("Perfil profesional")
+
+        if ruta_foto:
+            score += 10
+        else:
+            faltantes.append("Foto de perfil")
+
+        if ruta_cedula:
+            score += 15
+        else:
+            faltantes.append("Documento cédula")
+
+        if count_edu > 0:
+            score += 10
+            if count_edu_soporte > 0:
+                score += 10
+            else:
+                faltantes.append("Soporte educativo")
+        else:
+            faltantes.append("Estudios académicos")
+
+        if count_exp > 0:
+            score += 5
+            if count_exp_soporte > 0:
+                score += 5
+            else:
+                faltantes.append("Soporte laboral")
+        else:
+            faltantes.append("Experiencia laboral")
+
+        if count_ref > 0:
+            score += 10
+        else:
+            faltantes.append("Referencias")
+
+        completitud = min(100, score)
+        lo_faltante = ", ".join(faltantes) if faltantes else "Ninguno"
+
         rows_data.append({
             'num': idx,
             'id': pid,
             'nombre': nombre,
             'tipo_doc': tipo_doc,
             'doc': doc,
+            'completitud': completitud,
+            'lo_faltante': lo_faltante,
             'fecha_nacimiento': fn_formatted,
             'edad': age,
             'sexo': gen,
@@ -168,12 +235,12 @@ def main():
     ws_data.views.sheetView[0].showGridLines = True
 
     # Header Title Block
-    ws_data.merge_cells("A1:O1")
+    ws_data.merge_cells("A1:Q1")
     ws_data["A1"] = "REPORTE DE DATOS DEMOGRÁFICOS - HOJAS DE VIDA"
     ws_data["A1"].font = font_title
     ws_data["A1"].alignment = Alignment(horizontal='left', vertical='center')
 
-    ws_data.merge_cells("A2:O2")
+    ws_data.merge_cells("A2:Q2")
     ws_data["A2"] = f"Alcaldía Local de Sumapaz | Generado el {datetime.now().strftime('%Y-%m-%d')} | Total Registros: {len(rows_data)}"
     ws_data["A2"].font = font_subtitle
     ws_data["A2"].alignment = Alignment(horizontal='left', vertical='center')
@@ -184,6 +251,7 @@ def main():
 
     headers = [
         "N°", "ID", "Nombre Completo", "Tipo Doc.", "Número Documento",
+        "Completitud (%)", "Lo Faltante",
         "Fecha Nacimiento", "Edad", "Sexo / Género", "Nivel Educativo",
         "Título / Formación Obtenida", "Vereda", "Municipio Residencia",
         "Departamento Residencia", "Teléfono", "Correo Electrónico"
@@ -207,16 +275,18 @@ def main():
             ws_data.cell(row=idx, column=3, value=d['nombre']),
             ws_data.cell(row=idx, column=4, value=d['tipo_doc']),
             ws_data.cell(row=idx, column=5, value=d['doc']),
-            ws_data.cell(row=idx, column=6, value=d['fecha_nacimiento']),
-            ws_data.cell(row=idx, column=7, value=d['edad']),
-            ws_data.cell(row=idx, column=8, value=d['sexo']),
-            ws_data.cell(row=idx, column=9, value=d['nivel_educativo']),
-            ws_data.cell(row=idx, column=10, value=d['titulo_obtenido']),
-            ws_data.cell(row=idx, column=11, value=d['vereda']),
-            ws_data.cell(row=idx, column=12, value=d['muni_residencia']),
-            ws_data.cell(row=idx, column=13, value=d['dept_residencia']),
-            ws_data.cell(row=idx, column=14, value=d['telefono']),
-            ws_data.cell(row=idx, column=15, value=d['email'])
+            ws_data.cell(row=idx, column=6, value=f"{d['completitud']}%"),
+            ws_data.cell(row=idx, column=7, value=d['lo_faltante']),
+            ws_data.cell(row=idx, column=8, value=d['fecha_nacimiento']),
+            ws_data.cell(row=idx, column=9, value=d['edad']),
+            ws_data.cell(row=idx, column=10, value=d['sexo']),
+            ws_data.cell(row=idx, column=11, value=d['nivel_educativo']),
+            ws_data.cell(row=idx, column=12, value=d['titulo_obtenido']),
+            ws_data.cell(row=idx, column=13, value=d['vereda']),
+            ws_data.cell(row=idx, column=14, value=d['muni_residencia']),
+            ws_data.cell(row=idx, column=15, value=d['dept_residencia']),
+            ws_data.cell(row=idx, column=16, value=d['telefono']),
+            ws_data.cell(row=idx, column=17, value=d['email'])
         ]
 
         ws_data.row_dimensions[idx].height = 22
@@ -229,7 +299,7 @@ def main():
                 cell.fill = fill_zebra
             
             # Alignments
-            if col_idx in [1, 2, 4, 5, 6, 7, 8, 14]:
+            if col_idx in [1, 2, 4, 5, 6, 8, 9, 10, 16]:
                 cell.alignment = align_center
             else:
                 cell.alignment = align_left
@@ -240,16 +310,18 @@ def main():
     ws_data.column_dimensions['C'].width = 36  # Nombre Completo
     ws_data.column_dimensions['D'].width = 24  # Tipo Doc
     ws_data.column_dimensions['E'].width = 20  # Documento
-    ws_data.column_dimensions['F'].width = 18  # Fecha Nacimiento
-    ws_data.column_dimensions['G'].width = 10  # Edad
-    ws_data.column_dimensions['H'].width = 16  # Sexo
-    ws_data.column_dimensions['I'].width = 30  # Nivel Educativo
-    ws_data.column_dimensions['J'].width = 40  # Título / Formación
-    ws_data.column_dimensions['K'].width = 24  # Vereda
-    ws_data.column_dimensions['L'].width = 22  # Muni Res
-    ws_data.column_dimensions['M'].width = 22  # Dept Res
-    ws_data.column_dimensions['N'].width = 18  # Teléfono
-    ws_data.column_dimensions['O'].width = 34  # Email
+    ws_data.column_dimensions['F'].width = 16  # Completitud (%)
+    ws_data.column_dimensions['G'].width = 35  # Lo Faltante
+    ws_data.column_dimensions['H'].width = 18  # Fecha Nacimiento
+    ws_data.column_dimensions['I'].width = 10  # Edad
+    ws_data.column_dimensions['J'].width = 16  # Sexo
+    ws_data.column_dimensions['K'].width = 30  # Nivel Educativo
+    ws_data.column_dimensions['L'].width = 40  # Título / Formación
+    ws_data.column_dimensions['M'].width = 24  # Vereda
+    ws_data.column_dimensions['N'].width = 22  # Muni Res
+    ws_data.column_dimensions['O'].width = 22  # Dept Res
+    ws_data.column_dimensions['P'].width = 18  # Teléfono
+    ws_data.column_dimensions['Q'].width = 34  # Email
 
     # ----------------------------------------------------
     # SHEET 2: Summary Dashboard ("Resumen Demográfico")

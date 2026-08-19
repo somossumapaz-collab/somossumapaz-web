@@ -1,10 +1,8 @@
 <?php
 $file = __DIR__ . '/Datos_Demograficos_Hojas_de_Vida.xlsx';
 
-// Regenerate if missing
-if (!file_exists($file)) {
-    exec('python ' . escapeshellarg(__DIR__ . '/exportar_demograficos_excel.py'));
-}
+// Always regenerate to serve fresh database information
+exec('python ' . escapeshellarg(__DIR__ . '/exportar_demograficos_excel.py'));
 
 if (file_exists($file)) {
     header('Content-Description: File Transfer');
